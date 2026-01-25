@@ -14,6 +14,19 @@ interface StatusResponse {
   online: boolean;
 }
 
+// 缓存配置
+const CACHE_KEY = 'weather_cache';
+const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12小时
+
+// 缓存接口
+interface WeatherCache {
+  data: WeatherInfo;
+  timestamp: number;
+}
+
+// 全局缓存（生产环境应该使用 Redis 或其他持久化存储）
+let weatherCache: WeatherCache | null = null;
+
 // 天气图标映射
 const WEATHER_EMOJIS: Record<string, string> = {
   '晴': '☀️',
@@ -64,15 +77,23 @@ function parseWeatherInfo(searchResults: string): WeatherInfo {
   };
 }
 
-// 获取天气信息
+// 获取天气信息（带缓存）
 async function getWeatherInfo(): Promise<WeatherInfo> {
+  const now = Date.now();
+
+  // 检查缓存是否有效
+  if (weatherCache && (now - weatherCache.timestamp) < CACHE_DURATION) {
+    console.log('使用缓存的天气数据');
+    return weatherCache.data;
+  }
+
   try {
     const config = new Config();
     const searchClient = new SearchClient(config);
 
-    // 搜索北京实时天气
+    // 搜索上海实时天气
     const response = await searchClient.webSearchWithSummary(
-      '北京今天实时天气',
+      '上海今天实时天气',
       3
     );
 
@@ -82,24 +103,49 @@ async function getWeatherInfo(): Promise<WeatherInfo> {
         .map(item => item.snippet + ' ' + (item.summary || ''))
         .join(' ');
 
-      return parseWeatherInfo(searchResults);
+      const weatherData = parseWeatherInfo(searchResults);
+
+      // 更新缓存
+      weatherCache = {
+        data: weatherData,
+        timestamp: now,
+      };
+
+      return weatherData;
     }
 
     // 如果搜索失败，返回默认值
-    return {
-      city: '北京',
-      temperature: '25°C',
-      condition: '晴',
-      emoji: '☀️',
+    const defaultWeather = {
+      city: '上海',
+      temperature: '20°C',
+      condition: '多云',
+      emoji: '⛅',
     };
+
+    // 缓存默认值
+    weatherCache = {
+      data: defaultWeather,
+      timestamp: now,
+    };
+
+    return defaultWeather;
   } catch (error) {
     console.error('获取天气信息失败:', error);
-    return {
-      city: '北京',
-      temperature: '25°C',
-      condition: '晴',
-      emoji: '☀️',
+
+    const defaultWeather = {
+      city: '上海',
+      temperature: '20°C',
+      condition: '多云',
+      emoji: '⛅',
     };
+
+    // 缓存默认值
+    weatherCache = {
+      data: defaultWeather,
+      timestamp: now,
+    };
+
+    return defaultWeather;
   }
 }
 
