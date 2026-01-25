@@ -21,16 +21,18 @@ export function AIStatusCard() {
   const [status, setStatus] = useState<StatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchStatus();
   }, []);
 
-  const fetchStatus = async () => {
+  const fetchStatus = async (usePost = false) => {
     try {
       setLoading(true);
       setError(false);
-      const response = await fetch('/api/status');
+      const method = usePost ? 'POST' : 'GET';
+      const response = await fetch('/api/status', { method });
       const data = await response.json();
       setStatus(data);
     } catch (err) {
@@ -39,9 +41,9 @@ export function AIStatusCard() {
       setStatus({
         weather: {
           city: '上海',
-          temperature: '20°C',
-          condition: '多云',
-          emoji: '⛅',
+          temperature: '25°C',
+          condition: '晴',
+          emoji: '☀️',
         },
         moodQuote: '系统正在休眠...',
         online: true,
@@ -49,6 +51,13 @@ export function AIStatusCard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 手动刷新天气数据
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchStatus(true); // 使用 POST 方法刷新
+    setRefreshing(false);
   };
 
   // 骨架屏加载动画
@@ -81,15 +90,44 @@ export function AIStatusCard() {
         {/* 背景光晕效果 */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5 pointer-events-none" />
 
-        {/* 在线状态呼吸灯 */}
-        {status?.online && (
-          <div className="absolute top-3 right-3">
+        {/* 在线状态呼吸灯和刷新按钮 */}
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          {status?.online && (
             <div className="relative">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
             </div>
-          </div>
-        )}
+          )}
+
+          {/* 刷新按钮 */}
+          <motion.button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative group p-2 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="刷新天气数据"
+          >
+            <motion.div
+              animate={{ rotate: refreshing ? 360 : 0 }}
+              transition={{ duration: 1, repeat: refreshing ? Infinity : 0, ease: 'linear' }}
+            >
+              <svg
+                className="w-4 h-4 text-purple-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+            </motion.div>
+          </motion.button>
+        </div>
 
         {/* 主要内容 */}
         <div className="flex items-center gap-4 relative">
