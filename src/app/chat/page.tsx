@@ -29,18 +29,25 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const isFirstLoad = useRef(true);
+  const initialMessageCount = useRef(1); // 初始有1条消息
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
-    // 首次加载不滚动到底部，只有在有新消息时才滚动
-    if (!isFirstLoad.current) {
-      scrollToBottom();
-    } else {
+    // 首次加载时，强制滚动到顶部
+    if (isFirstLoad.current) {
+      messagesContainerRef.current?.scrollTo({ top: 0, behavior: 'auto' });
       isFirstLoad.current = false;
+    } else {
+      // 只有在消息数量增加时才滚动到底部
+      if (messages.length > initialMessageCount.current) {
+        scrollToBottom();
+        initialMessageCount.current = messages.length;
+      }
     }
   }, [messages]);
 
@@ -183,7 +190,7 @@ export default function ChatPage() {
         <Card className="border-purple-500/20 shadow-2xl shadow-purple-500/10">
           <CardContent className="p-6">
             {/* Messages Area */}
-            <div className="h-[60vh] overflow-y-auto mb-6 space-y-4 pr-2">
+            <div ref={messagesContainerRef} className="h-[60vh] overflow-y-auto mb-6 space-y-4 pr-2">
               <AnimatePresence initial={false}>
                 {messages.map((message) => (
                   <motion.div
