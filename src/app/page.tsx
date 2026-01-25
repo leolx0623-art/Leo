@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Navigation } from '@/components/navigation';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { ArrowRight, Sparkles, Bot, Play, Link2, Film, Image as ImageIcon, Music, Package } from 'lucide-react';
+import { ArrowRight, Sparkles, Bot, Play, Link2, Film, Image as ImageIcon, Music, Package, Mail, MapPin, Phone, Github, Twitter, Linkedin, Award, Code, Palette, Video, Zap } from 'lucide-react';
 import Link from 'next/link';
 
 // 分类配置
@@ -157,6 +158,215 @@ export default function Home() {
           </div>
         </motion.div>
       </motion.div>
+
+      {/* Personal Profile Card Section */}
+      <section className="py-20 container mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="max-w-6xl mx-auto"
+        >
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* 左侧：基本信息 */}
+            <Card className="border-purple-500/20 bg-gradient-to-br from-purple-900/10 to-pink-900/10 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-b">
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <Sparkles className="w-6 h-6 text-purple-400" />
+                  个人名片
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-8">
+                {/* 照片区域 */}
+                <div className="flex flex-col items-center mb-8">
+                  <div className="relative w-40 h-40 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-1 mb-4">
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-900 to-pink-900 flex items-center justify-center overflow-hidden">
+                      {/* 默认头像 */}
+                      <div className="text-6xl">👨‍💻</div>
+                    </div>
+                    {/* 在线状态指示器 */}
+                    <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 rounded-full border-4 border-purple-900" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-1">雷响</h3>
+                  <p className="text-muted-foreground">AIGC 创作者 & 数字艺术家</p>
+                </div>
+
+                {/* 基本信息 */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-500/5 hover:bg-purple-500/10 transition-colors">
+                    <MapPin className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">现住地</p>
+                      <p className="font-medium">中国 · 北京</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-500/5 hover:bg-purple-500/10 transition-colors">
+                    <Mail className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">邮箱</p>
+                      <p className="font-medium">leo@example.com</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-500/5 hover:bg-purple-500/10 transition-colors">
+                    <Phone className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">电话</p>
+                      <p className="font-medium">+86 138 **** ****</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 社交媒体链接 */}
+                <div className="mt-8">
+                  <p className="text-sm text-muted-foreground mb-3">社交媒体</p>
+                  <div className="flex gap-3">
+                    <Button size="icon" variant="outline" className="border-purple-500/30 hover:bg-purple-500/10">
+                      <Github className="w-5 h-5" />
+                    </Button>
+                    <Button size="icon" variant="outline" className="border-purple-500/30 hover:bg-purple-500/10">
+                      <Twitter className="w-5 h-5" />
+                    </Button>
+                    <Button size="icon" variant="outline" className="border-purple-500/30 hover:bg-purple-500/10">
+                      <Linkedin className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* 联系按钮 */}
+                <Button
+                  size="lg"
+                  className="w-full mt-6 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  asChild
+                >
+                  <Link href="/contact">
+                    <Mail className="mr-2 w-5 h-5" />
+                    联系我
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* 右侧：履历和技能 */}
+            <div className="space-y-6">
+              {/* 履历 */}
+              <Card className="border-blue-500/20 bg-gradient-to-br from-blue-900/10 to-cyan-900/10">
+                <CardHeader className="bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border-b">
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Award className="w-5 h-5 text-blue-400" />
+                    专业履历
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-6">
+                    <div className="relative pl-6 border-l-2 border-blue-500/30">
+                      <div className="absolute left-0 top-0 -translate-x-1.5 w-3 h-3 rounded-full bg-blue-500" />
+                      <div className="mb-1 text-sm text-blue-400">2023 - 至今</div>
+                      <h4 className="font-bold mb-1">AIGC 创作者</h4>
+                      <p className="text-sm text-muted-foreground mb-2">自由职业 · 远程</p>
+                      <p className="text-sm text-muted-foreground">
+                        专注于 AI 生成内容的创作，包括图像、视频、音频和文本。使用 Midjourney、Stable Diffusion、Runway ML 等工具。
+                      </p>
+                    </div>
+
+                    <div className="relative pl-6 border-l-2 border-blue-500/30">
+                      <div className="absolute left-0 top-0 -translate-x-1.5 w-3 h-3 rounded-full bg-blue-500" />
+                      <div className="mb-1 text-sm text-blue-400">2021 - 2023</div>
+                      <h4 className="font-bold mb-1">视觉设计师</h4>
+                      <p className="text-sm text-muted-foreground mb-2">创意工作室 · 北京</p>
+                      <p className="text-sm text-muted-foreground">
+                        负责品牌视觉设计、UI/UX 设计和创意视觉项目。与多个知名品牌合作，完成超过 50 个项目。
+                      </p>
+                    </div>
+
+                    <div className="relative pl-6 border-l-2 border-blue-500/30">
+                      <div className="absolute left-0 top-0 -translate-x-1.5 w-3 h-3 rounded-full bg-blue-500" />
+                      <div className="mb-1 text-sm text-blue-400">2019 - 2021</div>
+                      <h4 className="font-bold mb-1">数字艺术家</h4>
+                      <p className="text-sm text-muted-foreground mb-2">艺术画廊 · 上海</p>
+                      <p className="text-sm text-muted-foreground">
+                        创作数字艺术作品，参与多个艺术展览。作品被收录到国际数字艺术集。
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 技能展示 */}
+              <Card className="border-green-500/20 bg-gradient-to-br from-green-900/10 to-emerald-900/10">
+                <CardHeader className="bg-gradient-to-r from-green-900/20 to-emerald-900/20 border-b">
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-green-400" />
+                    技能专长
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {/* AI 工具 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Bot className="w-4 h-4 text-green-400" />
+                        <h4 className="font-semibold text-sm">AI 工具</h4>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="secondary" className="bg-green-500/20 text-green-300 border-green-500/30">Midjourney</Badge>
+                        <Badge variant="secondary" className="bg-green-500/20 text-green-300 border-green-500/30">Stable Diffusion</Badge>
+                        <Badge variant="secondary" className="bg-green-500/20 text-green-300 border-green-500/30">Runway ML</Badge>
+                        <Badge variant="secondary" className="bg-green-500/20 text-green-300 border-green-500/30">Suno AI</Badge>
+                        <Badge variant="secondary" className="bg-green-500/20 text-green-300 border-green-500/30">GPT-4</Badge>
+                        <Badge variant="secondary" className="bg-green-500/20 text-green-300 border-green-500/30">Claude</Badge>
+                      </div>
+                    </div>
+
+                    {/* 设计技能 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Palette className="w-4 h-4 text-purple-400" />
+                        <h4 className="font-semibold text-sm">设计技能</h4>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="secondary" className="bg-purple-500/20 text-purple-300 border-purple-500/30">UI/UX 设计</Badge>
+                        <Badge variant="secondary" className="bg-purple-500/20 text-purple-300 border-purple-500/30">品牌设计</Badge>
+                        <Badge variant="secondary" className="bg-purple-500/20 text-purple-300 border-purple-500/30">插画创作</Badge>
+                        <Badge variant="secondary" className="bg-purple-500/20 text-purple-300 border-purple-500/30">3D 建模</Badge>
+                      </div>
+                    </div>
+
+                    {/* 视频制作 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Video className="w-4 h-4 text-red-400" />
+                        <h4 className="font-semibold text-sm">视频制作</h4>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="secondary" className="bg-red-500/20 text-red-300 border-red-500/30">Premiere Pro</Badge>
+                        <Badge variant="secondary" className="bg-red-500/20 text-red-300 border-red-500/30">After Effects</Badge>
+                        <Badge variant="secondary" className="bg-red-500/20 text-red-300 border-red-500/30">DaVinci Resolve</Badge>
+                      </div>
+                    </div>
+
+                    {/* 编程技能 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Code className="w-4 h-4 text-blue-400" />
+                        <h4 className="font-semibold text-sm">编程技能</h4>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="secondary" className="bg-blue-500/20 text-blue-300 border-blue-500/30">Python</Badge>
+                        <Badge variant="secondary" className="bg-blue-500/20 text-blue-300 border-blue-500/30">JavaScript</Badge>
+                        <Badge variant="secondary" className="bg-blue-500/20 text-blue-300 border-blue-500/30">TypeScript</Badge>
+                        <Badge variant="secondary" className="bg-blue-500/20 text-blue-300 border-blue-500/30">Next.js</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </motion.div>
+      </section>
 
       {/* Featured Works Section - Categories */}
       <section className="py-20 container mx-auto px-4">
