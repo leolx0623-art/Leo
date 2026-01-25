@@ -152,9 +152,11 @@ async function findRelatedPortfolios(query: string): Promise<Portfolio[]> {
 // 检查是否需要推荐作品
 function shouldRecommendPortfolios(message: string): boolean {
   const recommendKeywords = [
-    '作品', '展示', '案例', 'portfolio', 'example', 'show me',
-    '看', '看看', '什么', '哪些', '介绍', '推荐',
-    'image', 'video', 'audio', '创作', '设计'
+    '作品', '展示', '案例', 'portfolio', 'example',
+    '有什么作品', '看看作品', '作品展示', '作品介绍',
+    '哪些作品', '你的作品', '作品集', '代表作',
+    '推荐作品', '展示作品', '看作品', '展示案例',
+    '视频作品', '你的视频', '你的创作'
   ];
 
   const lowerMessage = message.toLowerCase();
@@ -164,12 +166,13 @@ function shouldRecommendPortfolios(message: string): boolean {
 // 检查是否需要生成图片
 function shouldGenerateImage(message: string): boolean {
   const imageKeywords = [
-    '生成图片', '画个', '创作一张', '帮我画', '画一张', '生成一张',
-    '帮我生成', '生成', '画', '画个', '创作',
+    '生成图片', '画个', '创作一张', '帮我画', '画一张', '生成一张', '出一张图', '出个图',
+    '帮我生成', '生成', '画', '画个', '创作', '出一张',
     'show me', 'create image', 'generate image', 'draw', 'paint',
-    '设计', '海报', 'logo', '插图', '视觉', '图片', 'photo',
+    '设计', '海报', 'logo', '插图', '视觉', '图片', 'photo', '图',
     '场景', '风景', '人物', '角色', '插画', '风格', '效果',
-    'image', 'picture', 'make', 'create', 'picture of', 'photo of'
+    'image', 'picture', 'make', 'create', 'picture of', 'photo of',
+    '做个', '来一张', '来个', '制作'
   ];
 
   const lowerMessage = message.toLowerCase();
@@ -222,7 +225,7 @@ export async function POST(request: NextRequest) {
     const needImage = shouldGenerateImage(message);
     console.log('🔍 是否需要生图:', needImage);
 
-    // 如果需要生成图片，先生成图片
+    // 如果需要生成图片，先生成图片，并且不推荐作品卡片
     if (needImage) {
       // 使用 LLM 生成优化的英文提示词
       const promptMessages: Array<{role: 'system' | 'user'; content: string}> = [
@@ -259,9 +262,9 @@ export async function POST(request: NextRequest) {
         const encoder = new TextEncoder();
         const responseStream = new ReadableStream({
           start(controller) {
-            // 先发送文字说明
+            // 先发送文字说明（使用Leo人设风格）
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-              content: `好的！我为你生成了一张图片：\n\n提示词：${generatedPrompt}\n\n`,
+              content: `没问题！这就是你要的图片~\n\n`,
             })}\n\n`));
 
             // 发送图片数据
