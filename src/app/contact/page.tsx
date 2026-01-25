@@ -85,7 +85,7 @@ export default function ContactPage() {
             transition={{ delay: 0.2 }}
           >
             <Card className="border-green-500/20 shadow-2xl shadow-green-500/10">
-              <CardHeader className="bg-gradient-to-r from-green-900/20 to-blue-900/20 border-b flex items-center justify-center">
+              <CardHeader className="bg-gradient-to-r from-green-900/20 to-blue-900/20 border-b !flex !flex-row !items-center !justify-center !min-h-[64px] !px-6">
                 <CardTitle className="flex items-center gap-2">
                   <Mail className="w-6 h-6 text-green-400" />
                   发送消息
@@ -152,7 +152,7 @@ export default function ContactPage() {
           >
             {/* Resume Download */}
             <Card className="border-purple-500/20 shadow-xl shadow-purple-500/10">
-              <CardHeader className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-b flex items-center justify-center">
+              <CardHeader className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-b !flex !flex-row !items-center !justify-center !min-h-[64px] !px-6">
                 <CardTitle className="flex items-center gap-2">
                   <Download className="w-6 h-6 text-purple-400" />
                   简历
@@ -177,7 +177,7 @@ export default function ContactPage() {
 
             {/* Contact Info */}
             <Card>
-              <CardHeader className="flex items-center justify-center">
+              <CardHeader className="!flex !flex-row !items-center !justify-center !min-h-[64px] !px-6">
                 <CardTitle>联系信息</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -198,7 +198,7 @@ export default function ContactPage() {
 
             {/* Social Links */}
             <Card>
-              <CardHeader className="flex items-center justify-center">
+              <CardHeader className="!flex !flex-row !items-center !justify-center !min-h-[64px] !px-6">
                 <CardTitle>关注我</CardTitle>
               </CardHeader>
               <CardContent>
@@ -240,7 +240,7 @@ export default function ContactPage() {
           transition={{ delay: 0.4 }}
         >
           <Card className="border-blue-500/20 shadow-2xl shadow-blue-500/10">
-            <CardHeader className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border-b flex items-center justify-center">
+            <CardHeader className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border-b !flex !flex-row !items-center !justify-center !min-h-[64px] !px-6">
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="w-6 h-6 text-blue-400" />
                 访客留言
