@@ -244,24 +244,50 @@ export default function Home() {
       </motion.div>
 
       {/* Personal Profile Card Section */}
-      <section className="py-20 container mx-auto px-4">
+      <section className="py-20 container mx-auto px-4 relative overflow-hidden">
+        {/* 科技感背景 */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `
+              linear-gradient(rgba(168, 85, 247, 0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(168, 85, 247, 0.03) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px'
+          }} />
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl" />
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="max-w-6xl mx-auto"
+          className="max-w-6xl mx-auto relative"
         >
-          {/* 标题居中优化 */}
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-center">
-              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+          {/* 标题居中优化 - 科技感装饰 */}
+          <div className="text-center mb-12 relative">
+            {/* 顶部装饰线 */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
+            
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-center relative">
+              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent relative inline-block">
                 个人名片
+                {/* 光晕效果 */}
+                <span className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-purple-400/20 to-purple-400/0 blur-xl" />
               </span>
             </h2>
-            <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto">
+            
+            <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto relative">
               了解我的专业背景、技能专长和工作经历
             </p>
+
+            {/* 底部装饰线 */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
+            
+            {/* 角落装饰 */}
+            <div className="absolute top-1/2 left-0 w-4 h-4 border-l-2 border-t-2 border-purple-500/50 -translate-y-1/2" />
+            <div className="absolute top-1/2 right-0 w-4 h-4 border-r-2 border-t-2 border-purple-500/50 -translate-y-1/2" />
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 relative">
@@ -269,7 +295,7 @@ export default function Home() {
             <Button
               size="sm"
               variant="outline"
-              className="absolute -top-4 right-0 z-10 border-purple-500/30 hover:bg-purple-500/10 gap-2"
+              className="absolute -top-4 right-0 z-10 border-purple-500/30 hover:bg-purple-500/10 hover:border-purple-500/50 gap-2 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20"
               onClick={() => setIsEditorOpen(true)}
             >
               <Edit className="w-4 h-4" />
@@ -277,88 +303,140 @@ export default function Home() {
             </Button>
 
             {/* 左侧：基本信息 */}
-            <Card className="border-purple-500/20 bg-gradient-to-br from-purple-900/10 to-pink-900/10 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-b text-center">
-                <CardTitle className="text-2xl flex items-center justify-center gap-2">
-                  <Sparkles className="w-6 h-6 text-purple-400" />
+            <Card className="border-purple-500/20 bg-gradient-to-br from-purple-900/10 to-pink-900/10 overflow-hidden relative backdrop-blur-sm">
+              {/* 卡片光晕效果 */}
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5 pointer-events-none" />
+              
+              <CardHeader className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-b text-center relative overflow-hidden">
+                {/* 流光效果 */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/10 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
+                
+                <CardTitle className="text-2xl flex items-center justify-center gap-2 relative">
+                  <Sparkles className="w-6 h-6 text-purple-400 animate-pulse" />
                   基本信息
+                  <Sparkles className="w-6 h-6 text-purple-400 animate-pulse" />
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-8">
-                {/* 照片区域 */}
-                <div className="flex flex-col items-center mb-8">
-                  <div className="relative w-40 h-40 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-1 mb-4">
-                    <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-900 to-pink-900 flex items-center justify-center overflow-hidden">
+              <CardContent className="p-8 relative">
+                {/* 照片区域 - 增强科技感 */}
+                <div className="flex flex-col items-center mb-8 relative">
+                  {/* 外层光晕 */}
+                  <div className="absolute inset-0 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl animate-pulse" />
+                  
+                  <div className="relative w-40 h-40 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-1 mb-4 group">
+                    {/* 外层光圈 */}
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-500/30 to-pink-500/30 blur-md animate-[spin_10s_linear_infinite]" />
+                    
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-900 to-pink-900 flex items-center justify-center overflow-hidden relative z-10 border-2 border-purple-500/30">
+                      {/* 网格背景 */}
+                      <div className="absolute inset-0 opacity-20" style={{
+                        backgroundImage: 'radial-gradient(circle, #a855f7 1px, transparent 1px)',
+                        backgroundSize: '10px 10px'
+                      }} />
+                      
                       {/* 头像 */}
-                      <div className="text-6xl">{profileData.personalInfo.avatar}</div>
+                      <div className="text-6xl relative z-10 group-hover:scale-110 transition-transform duration-300">
+                        {profileData.personalInfo.avatar}
+                      </div>
                     </div>
-                    {/* 在线状态指示器 */}
-                    <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 rounded-full border-4 border-purple-900" />
+                    
+                    {/* 在线状态指示器 - 增强光晕 */}
+                    <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 rounded-full border-4 border-purple-900 animate-pulse shadow-lg shadow-green-500/50" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-1 text-center">{profileData.personalInfo.name}</h3>
-                  <p className="text-muted-foreground text-center">{profileData.personalInfo.title}</p>
+                  
+                  <h3 className="text-2xl font-bold mb-1 text-center bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    {profileData.personalInfo.name}
+                  </h3>
+                  <p className="text-muted-foreground text-center relative">
+                    {profileData.personalInfo.title}
+                    {/* 下划线装饰 */}
+                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-20 h-0.5 bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
+                  </p>
                 </div>
 
-                {/* 基本信息 */}
+                {/* 基本信息 - 增强科技感 */}
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-500/5 hover:bg-purple-500/10 transition-colors">
-                    <MapPin className="w-5 h-5 text-purple-400 flex-shrink-0" />
-                    <div>
+                  <div className="group flex items-center gap-3 p-3 rounded-lg bg-purple-500/5 hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10 hover:border-purple-500/30 relative overflow-hidden">
+                    {/* 悬停光效 */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/10 to-purple-500/0 -translate-x-full group-hover:animate-[shimmer_1s_infinite]" />
+                    
+                    <MapPin className="w-5 h-5 text-purple-400 flex-shrink-0 relative z-10" />
+                    <div className="relative z-10">
                       <p className="text-sm text-muted-foreground">现住地</p>
                       <p className="font-medium">{profileData.personalInfo.location}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-500/5 hover:bg-purple-500/10 transition-colors">
-                    <Mail className="w-5 h-5 text-purple-400 flex-shrink-0" />
-                    <div>
+                  <div className="group flex items-center gap-3 p-3 rounded-lg bg-purple-500/5 hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10 hover:border-purple-500/30 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/10 to-purple-500/0 -translate-x-full group-hover:animate-[shimmer_1s_infinite]" />
+                    
+                    <Mail className="w-5 h-5 text-purple-400 flex-shrink-0 relative z-10" />
+                    <div className="relative z-10">
                       <p className="text-sm text-muted-foreground">邮箱</p>
                       <p className="font-medium">{profileData.personalInfo.email}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-500/5 hover:bg-purple-500/10 transition-colors">
-                    <Phone className="w-5 h-5 text-purple-400 flex-shrink-0" />
-                    <div>
+                  <div className="group flex items-center gap-3 p-3 rounded-lg bg-purple-500/5 hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10 hover:border-purple-500/30 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/10 to-purple-500/0 -translate-x-full group-hover:animate-[shimmer_1s_infinite]" />
+                    
+                    <Phone className="w-5 h-5 text-purple-400 flex-shrink-0 relative z-10" />
+                    <div className="relative z-10">
                       <p className="text-sm text-muted-foreground">电话</p>
                       <p className="font-medium">{profileData.personalInfo.phone}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* 社交媒体链接 */}
+                {/* 社交媒体链接 - 增强效果 */}
                 {(profileData.personalInfo.github || profileData.personalInfo.twitter || profileData.personalInfo.linkedin) && (
                   <div className="mt-8">
-                    <p className="text-sm text-muted-foreground mb-3 text-center">社交媒体</p>
+                    <p className="text-sm text-muted-foreground mb-3 text-center relative">
+                      社交媒体
+                      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
+                    </p>
                     <div className="flex justify-center gap-3">
                       {profileData.personalInfo.github && (
-                        <Button size="icon" variant="outline" className="border-purple-500/30 hover:bg-purple-500/10">
-                          <Github className="w-5 h-5" />
+                        <Button 
+                          size="icon" 
+                          variant="outline" 
+                          className="border-purple-500/30 hover:bg-purple-500/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
+                        >
+                          <Github className="w-5 h-5 group-hover:scale-110 transition-transform" />
                         </Button>
                       )}
                       {profileData.personalInfo.twitter && (
-                        <Button size="icon" variant="outline" className="border-purple-500/30 hover:bg-purple-500/10">
-                          <Twitter className="w-5 h-5" />
+                        <Button 
+                          size="icon" 
+                          variant="outline" 
+                          className="border-purple-500/30 hover:bg-purple-500/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
+                        >
+                          <Twitter className="w-5 h-5 group-hover:scale-110 transition-transform" />
                         </Button>
                       )}
                       {profileData.personalInfo.linkedin && (
-                        <Button size="icon" variant="outline" className="border-purple-500/30 hover:bg-purple-500/10">
-                          <Linkedin className="w-5 h-5" />
+                        <Button 
+                          size="icon" 
+                          variant="outline" 
+                          className="border-purple-500/30 hover:bg-purple-500/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
+                        >
+                          <Linkedin className="w-5 h-5 group-hover:scale-110 transition-transform" />
                         </Button>
                       )}
                     </div>
                   </div>
                 )}
 
-                {/* 联系按钮 */}
+                {/* 联系按钮 - 增强效果 */}
                 <Button
                   size="lg"
-                  className="w-full mt-6 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  className="w-full mt-6 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300 relative overflow-hidden group"
                   asChild
                 >
                   <Link href="/contact">
                     <Mail className="mr-2 w-5 h-5" />
                     联系我
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
                   </Link>
                 </Button>
               </CardContent>
@@ -366,23 +444,32 @@ export default function Home() {
 
             {/* 右侧：履历和技能 */}
             <div className="space-y-6">
-              {/* 履历 */}
-              <Card className="border-blue-500/20 bg-gradient-to-br from-blue-900/10 to-cyan-900/10">
-                <CardHeader className="bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border-b">
-                  <CardTitle className="text-xl flex items-center justify-center gap-2">
-                    <Award className="w-5 h-5 text-blue-400" />
+              {/* 履历 - 增强科技感 */}
+              <Card className="border-blue-500/20 bg-gradient-to-br from-blue-900/10 to-cyan-900/10 overflow-hidden relative backdrop-blur-sm">
+                {/* 卡片光晕效果 */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-cyan-500/5 pointer-events-none" />
+                
+                <CardHeader className="bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border-b relative overflow-hidden">
+                  {/* 流光效果 */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/10 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
+                  
+                  <CardTitle className="text-xl flex items-center justify-center gap-2 relative">
+                    <Award className="w-5 h-5 text-blue-400 animate-pulse" />
                     专业履历
+                    <Award className="w-5 h-5 text-blue-400 animate-pulse" />
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
+                <CardContent className="p-6 relative">
                   <div className="space-y-6">
-                    {profileData.experiences.map((exp) => (
-                      <div key={exp.id} className="relative pl-6 border-l-2 border-blue-500/30">
-                        <div className="absolute left-0 top-0 -translate-x-1.5 w-3 h-3 rounded-full bg-blue-500" />
-                        <div className="mb-1 text-sm text-blue-400">{exp.year}</div>
+                    {profileData.experiences.map((exp, index) => (
+                      <div key={exp.id} className="relative pl-6 border-l-2 border-blue-500/30 group">
+                        {/* 时间轴节点 - 增强发光效果 */}
+                        <div className="absolute left-0 top-0 -translate-x-1.5 w-3 h-3 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50 group-hover:scale-125 transition-transform duration-300" />
+                        
+                        <div className="mb-1 text-sm text-blue-400 font-medium">{exp.year}</div>
                         <h4 className="font-bold mb-1">{exp.position}</h4>
                         <p className="text-sm text-muted-foreground mb-2">{exp.company} · {exp.location}</p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground leading-relaxed">
                           {exp.description}
                         </p>
                       </div>
@@ -391,20 +478,27 @@ export default function Home() {
                 </CardContent>
               </Card>
 
-              {/* 技能展示 */}
-              <Card className="border-green-500/20 bg-gradient-to-br from-green-900/10 to-emerald-900/10">
-                <CardHeader className="bg-gradient-to-r from-green-900/20 to-emerald-900/20 border-b">
-                  <CardTitle className="text-xl flex items-center justify-center gap-2">
-                    <Zap className="w-5 h-5 text-green-400" />
+              {/* 技能展示 - 增强科技感 */}
+              <Card className="border-green-500/20 bg-gradient-to-br from-green-900/10 to-emerald-900/10 overflow-hidden relative backdrop-blur-sm">
+                {/* 卡片光晕效果 */}
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-emerald-500/5 pointer-events-none" />
+                
+                <CardHeader className="bg-gradient-to-r from-green-900/20 to-emerald-900/20 border-b relative overflow-hidden">
+                  {/* 流光效果 */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-500/10 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
+                  
+                  <CardTitle className="text-xl flex items-center justify-center gap-2 relative">
+                    <Zap className="w-5 h-5 text-green-400 animate-pulse" />
                     技能专长
+                    <Zap className="w-5 h-5 text-green-400 animate-pulse" />
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
+                <CardContent className="p-6 relative">
                   <div className="space-y-4">
                     {profileData.skillCategories.map((category) => (
-                      <div key={category.id}>
+                      <div key={category.id} className="group">
                         <div className="flex items-center gap-2 mb-3">
-                          <span className="text-xl">{category.icon}</span>
+                          <span className="text-xl group-hover:scale-110 transition-transform duration-300">{category.icon}</span>
                           <h4 className="font-semibold text-sm">{category.name}</h4>
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -412,7 +506,7 @@ export default function Home() {
                             <Badge
                               key={index}
                               variant="secondary"
-                              className="bg-green-500/20 text-green-300 border-green-500/30"
+                              className="bg-green-500/20 text-green-300 border-green-500/30 hover:bg-green-500/30 hover:border-green-500/50 hover:shadow-lg hover:shadow-green-500/20 transition-all duration-300 cursor-default"
                             >
                               {skill}
                             </Badge>
