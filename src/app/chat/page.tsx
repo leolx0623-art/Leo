@@ -29,13 +29,19 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isFirstLoad = useRef(true);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
-    scrollToBottom();
+    // 首次加载不滚动到底部，只有在有新消息时才滚动
+    if (!isFirstLoad.current) {
+      scrollToBottom();
+    } else {
+      isFirstLoad.current = false;
+    }
   }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
