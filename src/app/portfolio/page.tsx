@@ -413,7 +413,7 @@ function PortfolioContent() {
             AIGC作品项目库
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            leo的AI数字分身
+            Leo的创作空间
           </p>
         </motion.div>
 
