@@ -27,11 +27,11 @@ export async function POST(request: NextRequest) {
     const config = new Config();
     const client = new ImageGenerationClient(config);
 
-    // 生成AIGC创作者小男孩图像 - 办公室创作场景
-    const boyPrompt = `A cute Pixar 3D style boy character working at a modern creative studio desk with a computer, focused and passionate expression, creating digital art, red and purple neon color scheme, cyberpunk aesthetic, wearing modern casual clothes, creative workspace setup with glowing screens, high-quality 3D render, stylized sticker design, isolated on transparent background, 4K ultra HD resolution, PNG format`;
+    // 生成AIGC创作者小男孩图像 - 无背景3D角色
+    const boyPrompt = `A cute Pixar 3D style boy character, full body standing pose, wearing modern casual clothes, focused and passionate expression, creating digital art, red and purple neon color scheme, cyberpunk aesthetic, high-quality 3D render, clean transparent background, no background elements, PNG format, isolated character, 4K ultra HD resolution, cartoon sticker style`;
 
-    // 生成AI助手形象 - 陪伴创作的智能伙伴
-    const robotPrompt = `A friendly AI robot assistant character in Pixar 3D style, floating beside the creator, holographic interface, glowing purple and pink neon lights, sleek futuristic design, helpful and supportive pose, high-quality 3D render, stylized sticker design, isolated on transparent background, 4K ultra HD resolution, PNG format`;
+    // 生成AI助手形象 - 无背景3D角色
+    const robotPrompt = `A friendly AI robot assistant character in Pixar 3D style, full body floating pose, holographic interface, glowing purple and pink neon lights, sleek futuristic design, helpful and supportive pose, high-quality 3D render, clean transparent background, no background elements, PNG format, isolated character, 4K ultra HD resolution, cartoon sticker style`;
 
     console.log('开始生成创作者图像...');
     const boyResponse = await client.generate({

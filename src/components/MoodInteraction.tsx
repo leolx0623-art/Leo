@@ -324,13 +324,13 @@ export function MoodInteraction() {
             className="relative w-28 h-36 flex-shrink-0 z-10"
           >
             {characters?.creatorUrl ? (
-              <div className="relative w-full h-full">
+              <div className="relative w-full h-full flex items-end justify-center">
                 <img
                   src={characters.creatorUrl}
                   alt="Creator"
-                  className="w-full h-full object-contain mix-blend-multiply filter drop-shadow-2xl"
+                  className="w-full h-full object-contain"
                   style={{
-                    filter: 'drop-shadow(0 10px 30px rgba(239, 68, 68, 0.4))'
+                    filter: 'drop-shadow(0 8px 25px rgba(239, 68, 68, 0.5))',
                   }}
                 />
               </div>
@@ -379,13 +379,13 @@ export function MoodInteraction() {
             className="relative w-28 h-36 flex-shrink-0 z-10"
           >
             {characters?.assistantUrl ? (
-              <div className="relative w-full h-full">
+              <div className="relative w-full h-full flex items-end justify-center">
                 <img
                   src={characters.assistantUrl}
                   alt="AI Assistant"
-                  className="w-full h-full object-contain mix-blend-multiply filter drop-shadow-2xl"
+                  className="w-full h-full object-contain"
                   style={{
-                    filter: 'drop-shadow(0 10px 30px rgba(139, 92, 246, 0.4))'
+                    filter: 'drop-shadow(0 8px 25px rgba(139, 92, 246, 0.5))',
                   }}
                 />
               </div>
