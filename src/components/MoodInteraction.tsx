@@ -324,11 +324,16 @@ export function MoodInteraction() {
             className="relative w-24 h-32 flex-shrink-0 z-10"
           >
             {characters?.robotUrl ? (
-              <img
-                src={characters.robotUrl}
-                alt="AI Robot"
-                className="w-full h-full object-contain drop-shadow-2xl"
-              />
+              <div className="relative w-full h-full">
+                <img
+                  src={characters.robotUrl}
+                  alt="AI Robot"
+                  className="w-full h-full object-contain mix-blend-multiply filter drop-shadow-2xl"
+                  style={{
+                    filter: 'drop-shadow(0 10px 30px rgba(99, 102, 241, 0.4))'
+                  }}
+                />
+              </div>
             ) : (
               // 默认机器人形象
               <div className="w-full h-full relative">
@@ -374,11 +379,16 @@ export function MoodInteraction() {
             className="relative w-24 h-32 flex-shrink-0 z-10"
           >
             {characters?.boyUrl ? (
-              <img
-                src={characters.boyUrl}
-                alt="Boy"
-                className="w-full h-full object-contain drop-shadow-2xl"
-              />
+              <div className="relative w-full h-full">
+                <img
+                  src={characters.boyUrl}
+                  alt="Boy"
+                  className="w-full h-full object-contain mix-blend-multiply filter drop-shadow-2xl"
+                  style={{
+                    filter: 'drop-shadow(0 10px 30px rgba(245, 158, 11, 0.4))'
+                  }}
+                />
+              </div>
             ) : (
               // 默认小男孩形象
               <div className="w-full h-full relative">
@@ -422,21 +432,22 @@ export function MoodInteraction() {
             </span>
           </motion.div>
 
-          {/* 生成角色按钮 */}
-          {!characters && (
-            <motion.button
-              onClick={(e) => {
-                e.stopPropagation();
-                generateCharacters();
-              }}
-              disabled={isGenerating}
-              className={`text-xs px-3 py-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 transition-all duration-300 ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {isGenerating ? '生成中...' : '生成角色形象'}
-            </motion.button>
-          )}
+          {/* 生成/重新生成角色按钮 */}
+          <motion.button
+            onClick={(e) => {
+              e.stopPropagation();
+              // 清除缓存并重新生成
+              localStorage.removeItem(CHARACTERS_CACHE_KEY);
+              setCharacters(null);
+              generateCharacters();
+            }}
+            disabled={isGenerating}
+            className={`text-xs px-3 py-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 transition-all duration-300 ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {isGenerating ? '生成中...' : characters ? '重新生成角色' : '生成角色形象'}
+          </motion.button>
 
           {/* 提示文字 */}
           <motion.div

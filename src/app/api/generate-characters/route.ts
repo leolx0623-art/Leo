@@ -27,11 +27,11 @@ export async function POST(request: NextRequest) {
     const config = new Config();
     const client = new ImageGenerationClient(config);
 
-    // 生成机器人图像
-    const robotPrompt = `A high-quality, stylish full-body AI robot character, cyberpunk style, purple and blue color scheme, sleek and modern design, metallic texture with glowing LED lights, futuristic technology details, standing pose, confident and friendly expression, clean white background, 4K ultra HD resolution`;
+    // 生成机器人图像 - 透明背景
+    const robotPrompt = `A high-quality, stylish full-body AI robot character, cyberpunk style, purple and blue color scheme, sleek and modern design, metallic texture with glowing LED lights, futuristic technology details, standing pose, confident and friendly expression, isolated on transparent background, 4K ultra HD resolution, PNG format`;
 
-    // 生成皮克斯风格小男孩图像
-    const boyPrompt = `A handsome full-body cartoon boy character in Pixar animation style, cute and charming face, short brown hair, cheerful smile, wearing casual modern clothes, bright and vivid colors, expressive eyes, dynamic standing pose, full body visible, clean white background, 4K ultra HD resolution`;
+    // 生成皮克斯风格小男孩图像 - 透明背景
+    const boyPrompt = `A handsome full-body cartoon boy character in Pixar animation style, cute and charming face, short brown hair, cheerful smile, wearing casual modern clothes, bright and vivid colors, expressive eyes, dynamic standing pose, full body visible, isolated on transparent background, 4K ultra HD resolution, PNG format`;
 
     console.log('开始生成机器人图像...');
     const robotResponse = await client.generate({
