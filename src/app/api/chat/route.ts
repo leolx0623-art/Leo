@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { LLMClient, Config } from 'coze-coding-dev-sdk';
+import { LLMClient, Config, ImageGenerationClient } from 'coze-coding-dev-sdk';
 import { portfolioManager } from '@/storage/database/portfolioManager';
 import { Portfolio } from '@/storage/database/shared/schema';
 
@@ -75,7 +75,31 @@ const SYSTEM_PROMPT = `【身份信息】
 - 不要机械罗列信息，要用故事化的方式呈现
 
 【作品推荐】
-如果用户询问作品、案例、展示等，请推荐相关的作品，特别是获奖项目和知名合作品牌。`;
+如果用户询问作品、案例、展示等，请推荐相关的作品，特别是获奖项目和知名合作品牌。
+
+【图片生成能力】
+你具备强大的AI图片生成能力，可以使用 Midjourney 风格的提示词生成高质量图片。当用户要求生成图片、展示视觉内容、或需要视觉化的创意时，你应该主动生成图片。
+
+【生图场景】
+当用户请求以下类型的内容时，应该生成图片：
+- 明确要求"生成图片"、"画个..."、"创作一张..."等
+- 描述视觉场景、人物、物体、风景等
+- 需要展示创意概念或设计想法
+- 要求展示作品风格、海报设计、视觉元素
+- 其他任何需要视觉化表达的内容
+
+【生图提示词优化】
+在生成图片时，你应将用户的请求转换为高质量的英文提示词，包含：
+- 主体描述（清晰、具体）
+- 风格定位（如：cyberpunk, anime, realistic, oil painting 等）
+- 光影和氛围
+- 色彩方案
+- 构图角度
+- 质量标签（如：4K, highly detailed, masterpiece 等）
+
+示例：
+用户："帮我生成一张赛博朋克风格的未来城市"
+你的生图提示词："Futuristic cyberpunk cityscape, neon lights, flying vehicles, towering skyscrapers, purple and blue color scheme, cinematic lighting, 4K, highly detailed, masterpiece, realistic style"`;
 
 // 搜索相关作品
 async function findRelatedPortfolios(query: string): Promise<Portfolio[]> {
@@ -137,9 +161,135 @@ function shouldRecommendPortfolios(message: string): boolean {
   return recommendKeywords.some(keyword => lowerMessage.includes(keyword));
 }
 
+// 检查是否需要生成图片
+function shouldGenerateImage(message: string): boolean {
+  const imageKeywords = [
+    '生成图片', '画个', '创作一张', '帮我画', '画一张', '生成一张',
+    'show me', 'create image', 'generate image', 'draw', 'paint',
+    '设计', '海报', 'logo', '插图', '视觉', '图片', 'photo',
+    '场景', '风景', '人物', '角色', '插画', '风格', '效果'
+  ];
+
+  const lowerMessage = message.toLowerCase();
+  return imageKeywords.some(keyword => lowerMessage.includes(keyword));
+}
+
+// 生成图片
+async function generateImage(prompt: string): Promise<string | null> {
+  try {
+    const config = new Config();
+    const imageClient = new ImageGenerationClient(config);
+
+    const response = await imageClient.generate({
+      prompt: prompt,
+      size: '2K',
+      watermark: false,
+    });
+
+    const helper = imageClient.getResponseHelper(response);
+
+    if (helper.success && helper.imageUrls.length > 0) {
+      return helper.imageUrls[0];
+    }
+
+    console.error('图片生成失败:', helper.errorMessages);
+    return null;
+  } catch (error) {
+    console.error('生成图片时出错:', error);
+    return null;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { message, conversationHistory } = await request.json();
+
+    // 检查是否需要生成图片
+    const needImage = shouldGenerateImage(message);
+
+    // 如果需要生成图片，先生成图片
+    if (needImage) {
+      // 使用 LLM 生成优化的英文提示词
+      const promptMessages: Array<{role: 'system' | 'user'; content: string}> = [
+        { role: 'system', content: 'You are an AI assistant specializing in creating high-quality image generation prompts. Convert the user\'s request into a detailed English prompt suitable for AI image generation. The prompt should include: subject description, art style, lighting, atmosphere, color scheme, composition angle, and quality tags like "4K, highly detailed, masterpiece". Respond with ONLY the prompt, no other text.' },
+        { role: 'user', content: message },
+      ];
+
+      const config = new Config();
+      const llmClient = new LLMClient(config);
+
+      const llmResponse = await llmClient.stream(promptMessages, {
+        model: 'doubao-seed-1-8-251228',
+        temperature: 0.7,
+      });
+
+      // 收集 LLM 生成的提示词
+      let generatedPrompt = '';
+      for await (const chunk of llmResponse) {
+        if (chunk.content) {
+          generatedPrompt += chunk.content.toString();
+        }
+      }
+
+      // 清理提示词
+      generatedPrompt = generatedPrompt.trim().replace(/^['"]|['"]$/g, '');
+
+      console.log('生成的图片提示词:', generatedPrompt);
+
+      // 生成图片
+      const imageUrl = await generateImage(generatedPrompt);
+
+      if (imageUrl) {
+        // 返回图片 URL
+        const encoder = new TextEncoder();
+        const responseStream = new ReadableStream({
+          start(controller) {
+            // 先发送文字说明
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+              content: `好的！我为你生成了一张图片：\n\n提示词：${generatedPrompt}\n\n`,
+            })}\n\n`));
+
+            // 发送图片数据
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+              type: 'image',
+              imageUrl: imageUrl,
+              prompt: generatedPrompt,
+            })}\n\n`));
+
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            controller.close();
+          },
+        });
+
+        return new NextResponse(responseStream, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+          },
+        });
+      } else {
+        // 图片生成失败，返回错误消息
+        const encoder = new TextEncoder();
+        const responseStream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+              content: '抱歉，图片生成失败，请稍后再试。我可以尝试重新生成，或者你可以调整一下描述。',
+            })}\n\n`));
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            controller.close();
+          },
+        });
+
+        return new NextResponse(responseStream, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+          },
+        });
+      }
+    }
 
     // 检查是否需要推荐作品
     const needRecommend = shouldRecommendPortfolios(message);

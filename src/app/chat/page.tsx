@@ -15,6 +15,8 @@ interface Message {
   content: string;
   timestamp: Date;
   portfolioCards?: PortfolioCardData[];
+  imageUrl?: string;
+  imagePrompt?: string;
 }
 
 export default function ChatPage() {
@@ -103,6 +105,8 @@ export default function ChatPage() {
       const decoder = new TextDecoder();
       let assistantMessage = '';
       let portfolioCards: PortfolioCardData[] = [];
+      let imageUrl: string | undefined;
+      let imagePrompt: string | undefined;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -140,6 +144,21 @@ export default function ChatPage() {
                   const lastMessage = newMessages[newMessages.length - 1];
                   if (lastMessage && lastMessage.role === 'assistant') {
                     lastMessage.portfolioCards = portfolioCards;
+                  }
+                  return newMessages;
+                });
+              } else if (parsed.type === 'image' && parsed.imageUrl) {
+                // 保存图片数据
+                imageUrl = parsed.imageUrl;
+                imagePrompt = parsed.prompt;
+
+                // 更新消息，附加图片
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  const lastMessage = newMessages[newMessages.length - 1];
+                  if (lastMessage && lastMessage.role === 'assistant') {
+                    lastMessage.imageUrl = imageUrl;
+                    lastMessage.imagePrompt = imagePrompt;
                   }
                   return newMessages;
                 });
@@ -219,6 +238,23 @@ export default function ChatPage() {
                           : 'bg-muted'
                       }`}>
                         <p className="whitespace-pre-wrap">{message.content}</p>
+
+                        {/* 附加的图片 */}
+                        {message.imageUrl && (
+                          <div className="mt-3">
+                            <img
+                              src={message.imageUrl}
+                              alt={message.imagePrompt || 'Generated image'}
+                              className="rounded-lg max-w-full h-auto"
+                              style={{ maxHeight: '400px' }}
+                            />
+                            {message.imagePrompt && (
+                              <p className="text-xs text-muted-foreground mt-2 italic">
+                                "{message.imagePrompt}"
+                              </p>
+                            )}
+                          </div>
+                        )}
 
                         {/* 附加的作品卡片 */}
                         {message.portfolioCards && message.portfolioCards.length > 0 && (
