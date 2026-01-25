@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
-import { ExternalLink, Play, Link2 } from 'lucide-react';
+import { ExternalLink, Play, Link2, ArrowRight } from 'lucide-react';
 import { Button } from './ui/button';
+import { useRouter } from 'next/navigation';
 
 export interface PortfolioCardData {
   id: string;
@@ -18,34 +19,30 @@ interface PortfolioCardProps {
 }
 
 export function PortfolioCard({ portfolio }: PortfolioCardProps) {
-  const getLinkUrl = () => {
-    if (portfolio.websiteUrl) return portfolio.websiteUrl;
-    if (portfolio.videoUrl) return portfolio.videoUrl;
-    if (portfolio.imageUrl) return portfolio.imageUrl;
-    return '#';
+  const router = useRouter();
+
+  const handleClick = () => {
+    router.push(`/portfolio/${portfolio.id}`);
   };
 
-  const getLinkText = () => {
-    if (portfolio.websiteUrl) return '访问网站';
-    if (portfolio.videoUrl) return '观看视频';
-    if (portfolio.imageUrl) return '查看图片';
-    return '查看作品';
+  const getMediaType = () => {
+    if (portfolio.websiteUrl) return 'website';
+    if (portfolio.videoUrl) return 'video';
+    if (portfolio.imageUrl) return 'image';
+    return 'other';
   };
 
-  const getIcon = () => {
-    if (portfolio.websiteUrl) return <Link2 className="w-4 h-4" />;
-    if (portfolio.videoUrl) return <Play className="w-4 h-4 ml-1" />;
-    return <ExternalLink className="w-4 h-4" />;
-  };
+  const mediaType = getMediaType();
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="mt-3"
+      className="mt-3 cursor-pointer"
+      onClick={handleClick}
     >
-      <Card className="overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 border-purple-500/30">
+      <Card className="overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 border-purple-500/30 hover:border-purple-500/60">
         <div className="flex gap-4">
           {/* 图片预览 */}
           <div className="w-24 h-24 flex-shrink-0 bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center overflow-hidden">
@@ -85,11 +82,10 @@ export function PortfolioCard({ portfolio }: PortfolioCardProps) {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => window.open(getLinkUrl(), '_blank')}
                 className="flex-shrink-0 gap-1 text-xs h-7"
               >
-                {getIcon()}
-                {getLinkText()}
+                <ArrowRight className="w-4 h-4" />
+                查看详情
               </Button>
             </div>
           </CardContent>
