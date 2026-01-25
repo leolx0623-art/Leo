@@ -34,20 +34,12 @@ export function Navigation() {
           {/* Navigation Links */}
           <div className="hidden md:flex items-center gap-1">
             {navItems.map((item) => (
-              <Link key={item.path} href={item.path}>
+              <Link key={item.path} href={item.path} prefetch={true}>
                 <Button
                   variant={pathname === item.path ? 'default' : 'ghost'}
-                  className="relative"
+                  className="relative transition-colors duration-200"
                 >
                   {item.name}
-                  {pathname === item.path && (
-                    <motion.div
-                      layoutId="nav-underline"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                      initial={false}
-                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                    />
-                  )}
                 </Button>
               </Link>
             ))}

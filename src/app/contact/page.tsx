@@ -157,7 +157,7 @@ export default function ContactPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
           className="text-center mb-12"
         >
           <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
@@ -173,7 +173,7 @@ export default function ContactPage() {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             className="flex-1"
           >
             <Card className="border-green-500/20 shadow-2xl shadow-green-500/10 h-full">
@@ -239,7 +239,7 @@ export default function ContactPage() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             className="flex-1 flex flex-col space-y-6"
           >
             {/* Resume Download */}
@@ -340,7 +340,7 @@ export default function ContactPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
         >
           <Card className="border-blue-500/20 shadow-2xl shadow-blue-500/10">
             <CardHeader className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border-b !flex !flex-row !items-center !justify-center !min-h-[64px] !px-6">
