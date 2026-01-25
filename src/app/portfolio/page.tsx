@@ -86,10 +86,10 @@ function SortablePortfolioCard({
   };
 
   return (
-    <div ref={setNodeRef} style={style}>
-      <Card className="overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 group">
+    <div ref={setNodeRef} style={style} className="h-full">
+      <Card className="h-full flex flex-col overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 group">
         {/* 媒体内容预览 */}
-        <div className="relative aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center overflow-hidden">
+        <div className="relative aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center overflow-hidden flex-shrink-0">
           {/* 拖拽手柄 */}
           <div
             {...attributes}
@@ -169,11 +169,11 @@ function SortablePortfolioCard({
           </div>
         </div>
 
-        <CardContent className="p-6">
-          <h3 className="text-xl font-bold mb-2">{portfolio.title}</h3>
-          <p className="text-muted-foreground mb-4 line-clamp-2">{portfolio.description}</p>
+        <CardContent className="p-6 flex-1 flex flex-col">
+          <h3 className="text-xl font-bold mb-2 min-h-[28px] line-clamp-1">{portfolio.title}</h3>
+          <p className="text-muted-foreground mb-4 line-clamp-2 min-h-[40px] flex-1">{portfolio.description}</p>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mt-auto">
             {portfolio.websiteUrl && (
               <Button
                 size="sm"
