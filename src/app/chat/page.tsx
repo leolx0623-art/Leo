@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Navigation } from '@/components/navigation';
+import { PortfolioCard, PortfolioCardData } from '@/components/portfolio-card';
 import { Send, Sparkles, Bot, User } from 'lucide-react';
 
 interface Message {
@@ -13,6 +14,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  portfolioCards?: PortfolioCardData[];
 }
 
 export default function ChatPage() {
@@ -87,6 +89,7 @@ export default function ChatPage() {
 
       const decoder = new TextDecoder();
       let assistantMessage = '';
+      let portfolioCards: PortfolioCardData[] = [];
 
       while (true) {
         const { done, value } = await reader.read();
@@ -104,13 +107,26 @@ export default function ChatPage() {
               const parsed = JSON.parse(data);
               if (parsed.content) {
                 assistantMessage += parsed.content;
-                
+
                 // Update the last message with accumulated content
                 setMessages((prev) => {
                   const newMessages = [...prev];
                   const lastMessage = newMessages[newMessages.length - 1];
                   if (lastMessage && lastMessage.role === 'assistant') {
                     lastMessage.content = assistantMessage;
+                  }
+                  return newMessages;
+                });
+              } else if (parsed.type === 'portfolio_cards' && parsed.portfolioCards) {
+                // 保存作品卡片数据
+                portfolioCards = parsed.portfolioCards;
+
+                // 更新消息，附加作品卡片
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  const lastMessage = newMessages[newMessages.length - 1];
+                  if (lastMessage && lastMessage.role === 'assistant') {
+                    lastMessage.portfolioCards = portfolioCards;
                   }
                   return newMessages;
                 });
@@ -197,7 +213,20 @@ export default function ChatPage() {
                           : 'bg-muted'
                       }`}>
                         <p className="whitespace-pre-wrap">{message.content}</p>
-                        <p className={`text-xs mt-1 ${message.role === 'user' ? 'text-purple-100' : 'text-muted-foreground'}`}>
+
+                        {/* 附加的作品卡片 */}
+                        {message.portfolioCards && message.portfolioCards.length > 0 && (
+                          <div className="mt-3 space-y-2">
+                            {message.portfolioCards.map((portfolio) => (
+                              <PortfolioCard
+                                key={portfolio.id}
+                                portfolio={portfolio}
+                              />
+                            ))}
+                          </div>
+                        )}
+
+                        <p className={`text-xs mt-2 ${message.role === 'user' ? 'text-purple-100' : 'text-muted-foreground'}`}>
                           {message.timestamp.toLocaleTimeString()}
                         </p>
                       </div>
