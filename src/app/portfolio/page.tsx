@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -203,7 +203,8 @@ function SortablePortfolioCard({
   );
 }
 
-export default function PortfolioPage() {
+// 作品集内容组件（包含 useSearchParams）
+function PortfolioContent() {
   const searchParams = useSearchParams();
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [loading, setLoading] = useState(true);
@@ -627,5 +628,19 @@ export default function PortfolioPage() {
         </Dialog>
       </main>
     </div>
+  );
+}
+
+// 主页面组件（使用 Suspense 包裹）
+export default function PortfolioPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-purple-950/20 flex items-center justify-center">
+        <Navigation />
+        <div className="text-center text-muted-foreground">加载中...</div>
+      </div>
+    }>
+      <PortfolioContent />
+    </Suspense>
   );
 }
