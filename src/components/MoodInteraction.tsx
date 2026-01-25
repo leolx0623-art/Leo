@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 // 心情类型定义
 export type MoodType =
@@ -26,10 +26,6 @@ const MOOD_CONFIG: Record<
     emoji: string;
     color: string;
     bgColor: string;
-    animation: string;
-    creatorPosition: string;
-    assistantPosition: string;
-    scale: number;
   }
 > = {
   happy: {
@@ -37,120 +33,72 @@ const MOOD_CONFIG: Record<
     emoji: '😊',
     color: 'from-yellow-400 to-orange-400',
     bgColor: 'bg-yellow-500/10',
-    animation: 'animate-bounce',
-    creatorPosition: 'translate-y-0 rotate-0',
-    assistantPosition: 'translate-y-0 rotate-0',
-    scale: 1,
   },
   excited: {
     label: '兴奋',
     emoji: '🎉',
     color: 'from-pink-400 to-purple-400',
     bgColor: 'bg-pink-500/10',
-    animation: 'animate-pulse',
-    creatorPosition: 'translate-y-[-15px] -rotate-12',
-    assistantPosition: 'translate-y-[-10px] rotate-12',
-    scale: 1.1,
   },
   tipsy: {
     label: '微醺',
     emoji: '😵‍💫',
     color: 'from-purple-400 to-indigo-400',
     bgColor: 'bg-purple-500/10',
-    animation: 'animate-pulse',
-    creatorPosition: 'translate-y-[-5px] rotate-6',
-    assistantPosition: 'translate-y-[-5px] -rotate-6',
-    scale: 0.95,
   },
   sad: {
     label: '难过',
     emoji: '😢',
     color: 'from-blue-400 to-cyan-400',
     bgColor: 'bg-blue-500/10',
-    animation: '',
-    creatorPosition: 'translate-y-[10px] rotate-5',
-    assistantPosition: 'translate-y-[10px] -rotate-5',
-    scale: 0.9,
   },
   angry: {
     label: '愤怒',
     emoji: '😠',
     color: 'from-red-400 to-orange-500',
     bgColor: 'bg-red-500/10',
-    animation: 'animate-shake',
-    creatorPosition: 'translate-y-[-5px] -rotate-8',
-    assistantPosition: 'translate-y-[-5px] rotate-8',
-    scale: 1.05,
   },
   uneasy: {
     label: '不安',
     emoji: '😰',
     color: 'from-gray-400 to-slate-400',
     bgColor: 'bg-gray-500/10',
-    animation: 'animate-pulse',
-    creatorPosition: 'translate-x-[-5px] -rotate-3',
-    assistantPosition: 'translate-x-[5px] rotate-3',
-    scale: 0.95,
   },
   anxious: {
     label: '焦虑',
     emoji: '😬',
     color: 'from-amber-400 to-yellow-500',
     bgColor: 'bg-amber-500/10',
-    animation: 'animate-bounce',
-    creatorPosition: 'translate-x-[3px] rotate-0',
-    assistantPosition: 'translate-x-[-3px] rotate-0',
-    scale: 1,
   },
   confused: {
     label: '迷茫',
     emoji: '🤔',
     color: 'from-teal-400 to-green-400',
     bgColor: 'bg-teal-500/10',
-    animation: '',
-    creatorPosition: 'rotate-0',
-    assistantPosition: 'rotate-0',
-    scale: 0.95,
   },
   smiling: {
     label: '微笑',
     emoji: '🙂',
     color: 'from-green-400 to-emerald-400',
     bgColor: 'bg-green-500/10',
-    animation: '',
-    creatorPosition: 'translate-y-0 rotate-0',
-    assistantPosition: 'translate-y-0 rotate-0',
-    scale: 1,
   },
   calm: {
     label: '平静',
     emoji: '😌',
     color: 'from-cyan-400 to-blue-400',
     bgColor: 'bg-cyan-500/10',
-    animation: '',
-    creatorPosition: 'translate-y-0 rotate-0',
-    assistantPosition: 'translate-y-0 rotate-0',
-    scale: 1,
   },
   dreamy: {
     label: '梦幻',
     emoji: '😴',
     color: 'from-indigo-400 to-purple-400',
     bgColor: 'bg-indigo-500/10',
-    animation: 'animate-pulse',
-    creatorPosition: 'translate-y-[-8px] rotate-0',
-    assistantPosition: 'translate-y-[-8px] rotate-0',
-    scale: 0.9,
   },
   energetic: {
     label: '活力',
     emoji: '⚡',
     color: 'from-orange-400 to-red-400',
     bgColor: 'bg-orange-500/10',
-    animation: 'animate-bounce',
-    creatorPosition: 'translate-y-[-20px] -rotate-15',
-    assistantPosition: 'translate-y-[-20px] rotate-15',
-    scale: 1.15,
   },
 };
 
@@ -158,31 +106,30 @@ const MOOD_CONFIG: Record<
 const ALL_MOODS: MoodType[] = Object.keys(MOOD_CONFIG) as MoodType[];
 
 // 缓存键
-const MOOD_CACHE_KEY = 'mood_state_v2';
+const MOOD_CACHE_KEY = 'mood_state_v3';
 const MOOD_CACHE_DURATION = 6 * 60 * 60 * 1000; // 6小时
-const CHARACTERS_CACHE_KEY = 'characters_images';
+const QUOTE_CACHE_KEY = 'daily_quote_v2';
+const QUOTE_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24小时（1天）
 
 interface MoodState {
   mood: MoodType;
   timestamp: number;
 }
 
-interface CharactersImage {
-  creatorUrl: string;
-  assistantUrl: string;
+interface QuoteState {
+  quote: string;
   timestamp: number;
 }
 
 export function MoodInteraction() {
   const [currentMood, setCurrentMood] = useState<MoodType>('happy');
+  const [quote, setQuote] = useState('创意无限，探索不止');
   const [isInteracting, setIsInteracting] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [characters, setCharacters] = useState<CharactersImage | null>(null);
 
-  // 从缓存加载心情状态和角色图像
+  // 从缓存加载心情状态
   useEffect(() => {
     loadMoodFromCache();
-    loadCharactersFromCache();
+    loadQuoteFromCache();
   }, []);
 
   // 定时更新心情（每6小时）
@@ -190,6 +137,15 @@ export function MoodInteraction() {
     const interval = setInterval(() => {
       updateMood();
     }, MOOD_CACHE_DURATION);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // 定时更新座右铭（每天）
+  useEffect(() => {
+    const interval = setInterval(() => {
+      updateQuote();
+    }, QUOTE_CACHE_DURATION);
 
     return () => clearInterval(interval);
   }, []);
@@ -216,46 +172,26 @@ export function MoodInteraction() {
     updateMood();
   };
 
-  // 加载角色图像
-  const loadCharactersFromCache = () => {
+  // 加载缓存的座右铭
+  const loadQuoteFromCache = () => {
     try {
-      const cached = localStorage.getItem(CHARACTERS_CACHE_KEY);
+      const cached = localStorage.getItem(QUOTE_CACHE_KEY);
       if (cached) {
-        const data: CharactersImage = JSON.parse(cached);
-        setCharacters(data);
-      } else {
-        // 如果没有缓存，生成新的角色图像
-        generateCharacters();
+        const state: QuoteState = JSON.parse(cached);
+        const now = Date.now();
+
+        // 检查缓存是否有效
+        if (now - state.timestamp < QUOTE_CACHE_DURATION) {
+          setQuote(state.quote);
+          return;
+        }
       }
     } catch (error) {
-      console.error('加载角色图像缓存失败:', error);
+      console.error('加载座右铭缓存失败:', error);
     }
-  };
 
-  // 生成角色图像
-  const generateCharacters = async () => {
-    if (isGenerating) return;
-
-    try {
-      setIsGenerating(true);
-      const response = await fetch('/api/generate-characters', {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        throw new Error('生成角色图像失败');
-      }
-
-      const data: CharactersImage = await response.json();
-      setCharacters(data);
-
-      // 保存到缓存
-      localStorage.setItem(CHARACTERS_CACHE_KEY, JSON.stringify(data));
-    } catch (error) {
-      console.error('生成角色图像失败:', error);
-    } finally {
-      setIsGenerating(false);
-    }
+    // 如果没有缓存或缓存过期，更新座右铭
+    updateQuote();
   };
 
   // 更新心情
@@ -270,6 +206,27 @@ export function MoodInteraction() {
       timestamp: Date.now(),
     };
     localStorage.setItem(MOOD_CACHE_KEY, JSON.stringify(state));
+  };
+
+  // 更新座右铭
+  const updateQuote = async () => {
+    try {
+      const response = await fetch('/api/status');
+      const data = await response.json();
+
+      if (data.moodQuote) {
+        setQuote(data.moodQuote);
+
+        // 保存到缓存
+        const state: QuoteState = {
+          quote: data.moodQuote,
+          timestamp: Date.now(),
+        };
+        localStorage.setItem(QUOTE_CACHE_KEY, JSON.stringify(state));
+      }
+    } catch (error) {
+      console.error('更新座右铭失败:', error);
+    }
   };
 
   // 点击切换心情
@@ -290,71 +247,30 @@ export function MoodInteraction() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`mt-4 bg-gradient-to-br from-purple-900/10 to-pink-900/10 border border-purple-500/20 rounded-xl p-4 backdrop-blur-sm cursor-pointer hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 ${isInteracting ? 'scale-95' : 'hover:scale-[1.02]'}`}
-      onClick={handleClick}
+      className="bg-gradient-to-br from-purple-900/10 to-pink-900/10 border border-purple-500/20 rounded-xl p-4 backdrop-blur-sm hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300"
     >
       {/* 背景装饰 */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
 
-      {/* 布局改为垂直排列 */}
-      <div className="flex flex-col gap-4">
-        {/* 角色展示区域 */}
-        <div className="relative h-[180px] flex items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-purple-500/5 to-pink-500/5">
+      {/* 左右分栏布局 */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* 左边：心情状态区域 */}
+        <div
+          className="relative min-h-[160px] flex flex-col items-center justify-center gap-3 p-4 rounded-xl cursor-pointer hover:scale-[1.02] transition-transform duration-300"
+          onClick={handleClick}
+        >
           {/* 背景光晕 */}
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl" />
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-purple-500/20 rounded-full blur-2xl" />
           </div>
 
-          {/* 男孩角色 */}
-          <motion.div
-            key={`boy-${currentMood}`}
-            animate={{
-              y: moodConfig.creatorPosition.includes('translate-y')
-                ? parseInt(moodConfig.creatorPosition.match(/translate-y\[([-\d]+)px\]/)?.[1] || '0')
-                : 0,
-              scale: moodConfig.scale,
-            }}
-            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            className="relative w-48 h-full flex-shrink-0 z-10"
-          >
-            <div className="relative w-full h-full flex items-end justify-center pb-2">
-              <img
-                src="/boy-character-3d.png"
-                alt="男孩角色"
-                className="w-full h-full object-contain mix-blend-multiply"
-                style={{
-                  filter: 'drop-shadow(0 10px 30px rgba(239, 68, 68, 0.6))',
-                }}
-              />
-            </div>
-          </motion.div>
-
-          {/* 互动符号 */}
-          <motion.div
-            animate={{
-              opacity: [0.5, 1, 0.5],
-              scale: [0.8, 1.2, 0.8],
-            }}
-            transition={{
-              duration: 1.5,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-            className="absolute right-4 top-4 z-10 text-2xl"
-          >
-            ✨
-          </motion.div>
-        </div>
-
-        {/* 右侧：心情图示区域 */}
-        <div className="flex flex-col items-center justify-center space-y-3">
           {/* 心情图标 */}
           <motion.div
             key={currentMood}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-            className={`w-20 h-20 rounded-2xl ${moodConfig.bgColor} border-2 border-purple-500/30 flex items-center justify-center shadow-lg`}
+            className={`w-20 h-20 rounded-2xl ${moodConfig.bgColor} border-2 border-purple-500/30 flex items-center justify-center shadow-lg relative z-10`}
           >
             <motion.span
               className="text-5xl"
@@ -371,72 +287,60 @@ export function MoodInteraction() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${moodConfig.bgColor} border border-purple-500/20`}
-          >
-            <span className="text-sm font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              {moodConfig.label}
-            </span>
-          </motion.div>
-
-          {/* 生成/重新生成角色按钮 */}
-          <motion.button
-            onClick={(e) => {
-              e.stopPropagation();
-              // 清除缓存并重新生成
-              localStorage.removeItem(CHARACTERS_CACHE_KEY);
-              setCharacters(null);
-              generateCharacters();
-            }}
-            disabled={isGenerating}
-            className={`text-xs px-3 py-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 transition-all duration-300 ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {isGenerating ? '生成中...' : characters ? '重新生成角色' : '生成角色形象'}
-          </motion.button>
-
-          {/* 提示文字 */}
-          <motion.div
-            animate={{ opacity: isInteracting ? 1 : 0.7 }}
-            className="text-center mt-2"
-          >
-            <p className="text-xs text-purple-300/80">
-              点击切换心情
-            </p>
-          </motion.div>
-        </div>
-
-        {/* 底部：心情图示区域 */}
-        <div className="flex items-center justify-center gap-4 py-2">
-          {/* 心情图标 */}
-          <motion.div
-            key={currentMood}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-            className={`w-16 h-16 rounded-xl ${moodConfig.bgColor} border-2 border-purple-500/30 flex items-center justify-center shadow-lg`}
-          >
-            <motion.span
-              className="text-4xl"
-              animate={{ scale: isInteracting ? 1.2 : 1 }}
-              transition={{ duration: 0.2 }}
-            >
-              {moodConfig.emoji}
-            </motion.span>
-          </motion.div>
-
-          {/* 心情标签 */}
-          <motion.div
-            key={`label-${currentMood}`}
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-            className={`flex-1 text-center`}
+            className="relative z-10"
           >
             <span className="text-lg font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
               {moodConfig.label}
             </span>
           </motion.div>
+
+          {/* 提示文字 */}
+          <motion.div
+            animate={{ opacity: isInteracting ? 1 : 0.6 }}
+            className="text-center relative z-10"
+          >
+            <p className="text-xs text-purple-300/70">
+              点击切换心情
+            </p>
+          </motion.div>
+        </div>
+
+        {/* 右边：每日座右铭区域 */}
+        <div className="relative min-h-[160px] flex flex-col items-center justify-center gap-3 p-4 rounded-xl bg-gradient-to-br from-purple-500/5 to-pink-500/5 border border-purple-500/10">
+          {/* 背景装饰 */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-0 right-0 w-16 h-16 bg-pink-500/10 rounded-full blur-xl" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-purple-500/10 rounded-full blur-xl" />
+          </div>
+
+          {/* 座右铭图标 */}
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.2 }}
+            className="text-3xl relative z-10"
+          >
+            ✨
+          </motion.div>
+
+          {/* 座右铭内容 */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="text-center relative z-10"
+          >
+            <p className="text-sm text-gray-200 font-medium leading-relaxed px-2">
+              "{quote}"
+            </p>
+          </motion.div>
+
+          {/* 更新提示 */}
+          <div className="text-center relative z-10">
+            <p className="text-xs text-purple-300/50">
+              每日更新
+            </p>
+          </div>
         </div>
       </div>
     </motion.div>
