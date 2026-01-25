@@ -22,6 +22,7 @@ export default function ContactPage() {
     { id: 2, name: '李小红', message: '你的 AI 生成艺术太令人惊叹了。非常期待合作！', date: '2024-01-14' },
     { id: 3, name: '张小明', message: '视频项目做得太好了。非常受启发！', date: '2024-01-13' },
   ]);
+  const [guestbookName, setGuestbookName] = useState('');
   const [guestbookInput, setGuestbookInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -155,19 +156,45 @@ export default function ContactPage() {
     }
   };
 
-  const handleGuestbookSubmit = (e: React.FormEvent) => {
+  const handleGuestbookSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!guestbookInput.trim()) return;
 
-    const newMessage = {
-      id: Date.now(),
-      name: '访客',
+    const submitData = {
+      name: guestbookName.trim() || '匿名访客',
       message: guestbookInput,
-      date: new Date().toISOString().split('T')[0],
     };
 
-    setGuestbookMessages([newMessage, ...guestbookMessages]);
-    setGuestbookInput('');
+    try {
+      const response = await fetch('/api/contact/feishu', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submitData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // 添加到本地留言列表显示
+        const newMessage = {
+          id: Date.now(),
+          name: guestbookName.trim() || '匿名访客',
+          message: guestbookInput,
+          date: new Date().toISOString().split('T')[0],
+        };
+        setGuestbookMessages([newMessage, ...guestbookMessages]);
+        setGuestbookName('');
+        setGuestbookInput('');
+        alert(result.message || '留言已发送！我会尽快查看并回复您。');
+      } else {
+        alert(result.error || '留言发送失败，请稍后重试');
+      }
+    } catch (error) {
+      console.error('发送留言失败:', error);
+      alert('留言发送失败，请检查网络连接后重试');
+    }
   };
 
   return (
@@ -373,7 +400,13 @@ export default function ContactPage() {
             </CardHeader>
             <CardContent className="p-6">
               <form onSubmit={handleGuestbookSubmit} className="mb-6">
-                <div className="flex gap-2">
+                <div className="flex flex-col md:flex-row gap-2">
+                  <Input
+                    placeholder="你的名字（选填）"
+                    value={guestbookName}
+                    onChange={(e) => setGuestbookName(e.target.value)}
+                    className="md:w-32"
+                  />
                   <Input
                     placeholder="留下一条消息..."
                     value={guestbookInput}
