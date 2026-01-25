@@ -17,12 +17,23 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Navigation } from '@/components/navigation';
-import { Plus, Edit2, Trash2, Upload, X, Play, ExternalLink, Link2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Upload, X, Play, ExternalLink, Link2, Filter } from 'lucide-react';
+
+// 分类常量
+const CATEGORIES = [
+  { value: 'all', label: '全部', icon: '🎨' },
+  { value: 'image', label: '图像', icon: '🖼️' },
+  { value: 'video', label: '视频', icon: '🎬' },
+  { value: 'audio', label: '音频', icon: '🎵' },
+  { value: 'website', label: '网址', icon: '🌐' },
+  { value: 'other', label: '其他', icon: '📦' },
+] as const;
 
 interface Portfolio {
   id: string;
   title: string;
   description: string;
+  category: string;
   imageUrl?: string;
   videoUrl?: string;
   websiteUrl?: string;
@@ -36,11 +47,13 @@ export default function PortfolioPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPortfolio, setEditingPortfolio] = useState<Portfolio | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   // 表单状态
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    category: 'other',
     imageUrl: '',
     videoUrl: '',
     websiteUrl: '',
@@ -49,11 +62,14 @@ export default function PortfolioPage() {
   // 加载作品集
   useEffect(() => {
     fetchPortfolios();
-  }, []);
+  }, [selectedCategory]);
 
   const fetchPortfolios = async () => {
     try {
-      const response = await fetch('/api/portfolios');
+      const url = selectedCategory === 'all'
+        ? '/api/portfolios'
+        : `/api/portfolios?category=${selectedCategory}`;
+      const response = await fetch(url);
       const data = await response.json();
       setPortfolios(data);
     } catch (error) {
@@ -69,6 +85,7 @@ export default function PortfolioPage() {
     setFormData({
       title: '',
       description: '',
+      category: 'other',
       imageUrl: '',
       videoUrl: '',
       websiteUrl: '',
@@ -82,6 +99,7 @@ export default function PortfolioPage() {
     setFormData({
       title: portfolio.title,
       description: portfolio.description,
+      category: portfolio.category,
       imageUrl: portfolio.imageUrl || '',
       videoUrl: portfolio.videoUrl || '',
       websiteUrl: portfolio.websiteUrl || '',
@@ -184,7 +202,7 @@ export default function PortfolioPage() {
         </motion.div>
 
         {/* 添加按钮 */}
-        <div className="flex justify-center mb-8">
+        <div className="flex flex-col items-center gap-4 mb-8">
           <Button
             onClick={handleAdd}
             className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
@@ -192,6 +210,29 @@ export default function PortfolioPage() {
             <Plus className="mr-2 h-5 w-5" />
             添加作品集
           </Button>
+
+          {/* 分类选择器 */}
+          <div className="flex flex-wrap gap-2 justify-center">
+            {CATEGORIES.map((category) => (
+              <Button
+                key={category.value}
+                variant={selectedCategory === category.value ? 'default' : 'outline'}
+                onClick={() => setSelectedCategory(category.value)}
+                className="rounded-full gap-2"
+                size="sm"
+              >
+                <span>{category.icon}</span>
+                <span>{category.label}</span>
+                {selectedCategory === category.value && (
+                  <Badge className="ml-1 bg-primary/20 text-primary">
+                    {category.value === 'all'
+                      ? portfolios.length
+                      : portfolios.filter((p) => p.category === category.value).length}
+                  </Badge>
+                )}
+              </Button>
+            ))}
+          </div>
         </div>
 
         {/* 加载状态 */}
@@ -359,6 +400,24 @@ export default function PortfolioPage() {
                   placeholder="描述您的作品"
                   rows={3}
                 />
+              </div>
+
+              <div>
+                <Label>分类 *</Label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {CATEGORIES.filter(c => c.value !== 'all').map((category) => (
+                    <Button
+                      key={category.value}
+                      variant={formData.category === category.value ? 'default' : 'outline'}
+                      onClick={() => setFormData({ ...formData, category: category.value })}
+                      className="rounded-full gap-2"
+                      size="sm"
+                    >
+                      <span>{category.icon}</span>
+                      <span>{category.label}</span>
+                    </Button>
+                  ))}
+                </div>
               </div>
 
               <div>

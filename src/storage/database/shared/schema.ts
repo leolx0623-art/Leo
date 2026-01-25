@@ -12,6 +12,7 @@ export const portfolios = pgTable(
       .default(sql`gen_random_uuid()`),
     title: varchar("title", { length: 255 }).notNull(),
     description: text("description").notNull(),
+    category: varchar("category", { length: 50 }).notNull().default("other"),
     imageUrl: text("image_url"),
     videoUrl: text("video_url"),
     websiteUrl: text("website_url"),
@@ -22,6 +23,7 @@ export const portfolios = pgTable(
   },
   (table) => ({
     createdAtIdx: index("portfolios_created_at_idx").on(table.createdAt),
+    categoryIdx: index("portfolios_category_idx").on(table.category),
   })
 )
 
@@ -34,6 +36,7 @@ const { createInsertSchema: createCoercedInsertSchema } = createSchemaFactory({
 export const insertPortfolioSchema = createCoercedInsertSchema(portfolios).pick({
   title: true,
   description: true,
+  category: true,
   imageUrl: true,
   videoUrl: true,
   websiteUrl: true,
@@ -43,6 +46,7 @@ export const updatePortfolioSchema = createCoercedInsertSchema(portfolios)
   .pick({
     title: true,
     description: true,
+    category: true,
     imageUrl: true,
     videoUrl: true,
     websiteUrl: true,

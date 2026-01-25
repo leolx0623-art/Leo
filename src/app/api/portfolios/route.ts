@@ -12,9 +12,12 @@ const storage = new S3Storage({
 })
 
 // GET - 获取所有作品集
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const portfolios = await portfolioManager.getPortfolios()
+    const { searchParams } = new URL(request.url)
+    const category = searchParams.get("category") || undefined
+
+    const portfolios = await portfolioManager.getPortfolios(category)
 
     // 为每个作品集生成签名 URL
     const portfoliosWithUrls = await Promise.all(

@@ -15,8 +15,15 @@ export class PortfolioManager {
     return portfolio
   }
 
-  async getPortfolios(): Promise<Portfolio[]> {
+  async getPortfolios(category?: string): Promise<Portfolio[]> {
     const db = await getDb()
+    if (category) {
+      return db
+        .select()
+        .from(portfolios)
+        .where(eq(portfolios.category, category))
+        .orderBy(desc(portfolios.createdAt))
+    }
     return db.select().from(portfolios).orderBy(desc(portfolios.createdAt))
   }
 
