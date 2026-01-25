@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Navigation } from '@/components/navigation';
-import { Plus, Edit2, Trash2, Upload, X, Play, ExternalLink } from 'lucide-react';
+import { Plus, Edit2, Trash2, Upload, X, Play, ExternalLink, Link2 } from 'lucide-react';
 
 interface Portfolio {
   id: string;
@@ -220,23 +220,55 @@ export default function PortfolioPage() {
                 transition={{ duration: 0.3 }}
               >
                 <Card className="overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 group">
-                  {/* 媒体内容 */}
-                  <div className="relative aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
+                  {/* 媒体内容预览 */}
+                  <div className="relative aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center overflow-hidden">
+                    {/* 优先级1: 图片预览 */}
                     {portfolio.imageUrl && (
                       <img
                         src={portfolio.imageUrl}
                         alt={portfolio.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     )}
-                    {portfolio.videoUrl && !portfolio.imageUrl && (
-                      <div className="flex flex-col items-center justify-center gap-4">
-                        <Play className="w-16 h-16 text-white/80" />
-                        <span className="text-white/80">视频作品</span>
+
+                    {/* 优先级2: 视频预览 */}
+                    {!portfolio.imageUrl && portfolio.videoUrl && (
+                      <video
+                        src={portfolio.videoUrl}
+                        className="w-full h-full object-cover"
+                        muted
+                        preload="metadata"
+                      />
+                    )}
+
+                    {/* 优先级3: 网站预览 */}
+                    {!portfolio.imageUrl && !portfolio.videoUrl && portfolio.websiteUrl && (
+                      <div className="w-full h-full p-6 flex flex-col items-center justify-center bg-gradient-to-br from-blue-900/40 to-purple-900/40">
+                        <Link2 className="w-16 h-16 text-white/80 mb-3" />
+                        <p className="text-white/90 text-sm font-medium text-center line-clamp-2">
+                          {portfolio.title}
+                        </p>
+                        <p className="text-white/60 text-xs mt-2 truncate max-w-full">
+                          {portfolio.websiteUrl.replace(/^https?:\/\//, '')}
+                        </p>
                       </div>
                     )}
-                    {!portfolio.imageUrl && !portfolio.videoUrl && (
-                      <div className="text-8xl">🎨</div>
+
+                    {/* 优先级4: 默认图案 */}
+                    {!portfolio.imageUrl && !portfolio.videoUrl && !portfolio.websiteUrl && (
+                      <div className="flex flex-col items-center justify-center gap-4">
+                        <div className="text-8xl animate-pulse">🎨</div>
+                        <span className="text-white/80 text-lg">创意作品</span>
+                      </div>
+                    )}
+
+                    {/* 视频播放按钮遮罩 */}
+                    {!portfolio.imageUrl && portfolio.videoUrl && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/20 transition-colors">
+                        <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Play className="w-8 h-8 text-white ml-1" />
+                        </div>
+                      </div>
                     )}
 
                     {/* 操作按钮 */}
