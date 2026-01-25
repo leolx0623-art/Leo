@@ -16,9 +16,9 @@ export default function Home() {
   const heroScale = useTransform(scrollY, [0, 300], [1, 0.9]);
 
   const featuredWorks = [
-    { id: 1, title: 'Neon Cityscape', category: 'Visuals', image: '🌃' },
-    { id: 2, title: 'Cyber Animation', category: 'Video', image: '🎬' },
-    { id: 3, title: 'Electronic Dreams', category: 'Audio', image: '🎵' },
+    { id: 1, title: '霓虹都市', category: '视觉', image: '🌃' },
+    { id: 2, title: '赛博动画', category: '视频', image: '🎬' },
+    { id: 3, title: '电子梦境', category: '音频', image: '🎵' },
   ];
 
   return (
@@ -65,7 +65,7 @@ export default function Home() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/30 mb-6">
               <Sparkles className="w-4 h-4 text-purple-400" />
-              <span className="text-sm text-purple-300">AI-Powered Creativity</span>
+              <span className="text-sm text-purple-300">AI 驱动创意</span>
             </div>
             
             <h1 className="text-6xl md:text-8xl font-bold mb-6">
@@ -73,11 +73,11 @@ export default function Home() {
                 AIGC
               </span>
               <br />
-              <span className="text-foreground">Creator Portfolio</span>
+              <span className="text-foreground">创作者作品集</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-8">
-              Exploring the boundaries of AI-generated art, video, audio, and creative writing
+              探索 AI 生成的艺术、视频、音频和创意写作的无限可能
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -87,7 +87,7 @@ export default function Home() {
                 asChild
               >
                 <Link href="/portfolio">
-                  Explore Portfolio
+                  浏览作品集
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
               </Button>
@@ -99,7 +99,7 @@ export default function Home() {
               >
                 <Link href="/chat">
                   <Bot className="mr-2 w-5 h-5" />
-                  Chat with AI
+                  与 AI 交流
                 </Link>
               </Button>
             </div>
@@ -128,10 +128,10 @@ export default function Home() {
         >
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Featured Works
+              精选作品
             </h2>
             <p className="text-xl text-muted-foreground">
-              Highlights from my creative journey
+              我的创作之旅中的精彩瞬间
             </p>
           </div>
 
@@ -179,28 +179,28 @@ export default function Home() {
             <CardContent className="p-8 md:p-12">
               <div className="text-center mb-8">
                 <h2 className="text-4xl md:text-5xl font-bold mb-4">
-                  About Me
+                  关于我
                 </h2>
                 <p className="text-xl text-muted-foreground">
-                  AIGC Creator & Digital Artist
+                  AIGC 创作者 & 数字艺术家
                 </p>
               </div>
               
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-4">
                   <p className="text-lg leading-relaxed">
-                    I'm an AI-generated content creator passionate about pushing the boundaries of what's possible with artificial intelligence.
+                    我是一名 AI 生成内容创作者，热衷于探索人工智能的无限可能。
                   </p>
                   <p className="text-lg leading-relaxed text-muted-foreground">
-                    From stunning visuals to immersive videos, from electronic music to compelling narratives—I explore it all.
+                    从令人惊叹的视觉作品到沉浸式视频，从电子音乐到引人入胜的叙事——我探索一切。
                   </p>
                 </div>
                 <div className="space-y-4">
                   <p className="text-lg leading-relaxed">
-                    My work has been featured in galleries, digital exhibitions, and creative platforms worldwide.
+                    我的作品曾在画廊、数字展览和全球创意平台上展出。
                   </p>
                   <p className="text-lg leading-relaxed text-muted-foreground">
-                    Let's collaborate and create something extraordinary together!
+                    让我们合作，一起创造非凡的作品吧！
                   </p>
                 </div>
               </div>
@@ -213,7 +213,7 @@ export default function Home() {
                   asChild
                 >
                   <Link href="/contact">
-                    Get in Touch
+                    联系我
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Link>
                 </Button>
@@ -249,19 +249,19 @@ export default function Home() {
               <CardHeader className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-b">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Sparkles className="w-5 h-5 text-purple-400" />
-                  AI Assistant
+                  AI 助手
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
                 <p className="text-sm text-muted-foreground mb-4">
-                  Hi! I'm the AI Digital Twin. How can I help you today?
+                  嗨！我是 AI 数字分身。今天我能为你做些什么？
                 </p>
                 <Button
                   className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                   asChild
                 >
                   <Link href="/chat">
-                    Start Chat
+                    开始对话
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Link>
                 </Button>

@@ -5,36 +5,36 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'AIGC Creator Portfolio',
-    template: '%s | AIGC Creator Portfolio',
+    default: 'AIGC 创作者作品集',
+    template: '%s | AIGC 创作者作品集',
   },
-  description: 'A high-performance personal website for an AIGC creator featuring an immersive portfolio and a personalized AI digital twin agent.',
+  description: 'AIGC 创作者的高性能个人网站，展示沉浸式作品集和个性化 AI 数字分身。',
   keywords: [
     'AIGC',
-    'AI Generated Content',
-    'Digital Art',
-    'AI Art',
-    'Portfolio',
-    'AI Creator',
+    'AI 生成内容',
+    '数字艺术',
+    'AI 艺术',
+    '作品集',
+    'AI 创作者',
     'Midjourney',
     'Stable Diffusion',
     'Runway ML',
-    'Digital Twin',
-    'AI Chat',
+    '数字分身',
+    'AI 聊天',
   ],
-  authors: [{ name: 'AIGC Creator' }],
+  authors: [{ name: 'AIGC 创作者' }],
   openGraph: {
-    title: 'AIGC Creator Portfolio - AI-Powered Creativity',
-    description: 'Explore AI-generated artworks, videos, audio, and creative writing. Chat with my AI digital twin!',
+    title: 'AIGC 创作者作品集 - AI 驱动创意',
+    description: '探索 AI 生成的艺术、视频、音频和创意写作。与我的 AI 数字分身聊天！',
     url: 'https://aigccreator.com',
-    siteName: 'AIGC Creator Portfolio',
-    locale: 'en_US',
+    siteName: 'AIGC 创作者作品集',
+    locale: 'zh_CN',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AIGC Creator Portfolio',
-    description: 'Exploring the boundaries of AI-generated creativity',
+    title: 'AIGC 创作者作品集',
+    description: '探索 AI 生成创意的边界',
   },
   robots: {
     index: true,
@@ -50,7 +50,7 @@ export default function RootLayout({
   const isDev = process.env.NODE_ENV === 'development';
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="zh-CN" suppressHydrationWarning>
       <body className="antialiased">
         {isDev && <Inspector />}
         <ThemeProvider

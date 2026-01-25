@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 
 const navItems = [
-  { name: 'Home', path: '/' },
-  { name: 'Portfolio', path: '/portfolio' },
-  { name: 'AI Chat', path: '/chat' },
-  { name: 'Contact', path: '/contact' },
+  { name: '首页', path: '/' },
+  { name: '作品集', path: '/portfolio' },
+  { name: 'AI 交流', path: '/chat' },
+  { name: '联系我', path: '/contact' },
 ];
 
 export function Navigation() {
@@ -27,7 +27,7 @@ export function Navigation() {
               transition={{ type: 'spring', stiffness: 400, damping: 10 }}
             />
             <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              AIGC Creator
+              AIGC 创作者
             </span>
           </Link>
 

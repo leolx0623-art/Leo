@@ -8,26 +8,26 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Navigation } from '@/components/navigation';
 
-const categories = ['Visuals', 'Video', 'Audio', 'Writing'];
+const categories = ['视觉', '视频', '音频', '写作'];
 
 const portfolioItems = {
-  Visuals: [
-    { id: 1, title: 'Neon Dreams', tool: 'Midjourney', image: '🎨', description: 'Futuristic cityscape with neon lights' },
-    { id: 2, title: 'Cyber Portrait', tool: 'Stable Diffusion', image: '👤', description: 'Digital portrait with cyberpunk aesthetics' },
-    { id: 3, title: 'Abstract AI', tool: 'Midjourney', image: '🌌', description: 'Abstract representation of AI consciousness' },
-    { id: 4, title: 'Nature Reimagined', tool: 'DALL-E 3', image: '🌿', description: 'Nature mixed with technology' },
+  视觉: [
+    { id: 1, title: '霓虹梦境', tool: 'Midjourney', image: '🎨', description: '未来主义城市景观，霓虹灯光闪烁' },
+    { id: 2, title: '赛博肖像', tool: 'Stable Diffusion', image: '👤', description: '具有赛博朋克美学的数字肖像' },
+    { id: 3, title: '抽象 AI', tool: 'Midjourney', image: '🌌', description: 'AI 意识的抽象表现' },
+    { id: 4, title: '自然重现', tool: 'DALL-E 3', image: '🌿', description: '自然与科技的融合' },
   ],
-  Video: [
-    { id: 5, title: 'Motion Loop', tool: 'Runway ML', image: '🎬', description: 'Infinite loop animation' },
-    { id: 6, title: 'AI Animation', tool: 'Pika Labs', image: '✨', description: 'AI-generated character animation' },
+  视频: [
+    { id: 5, title: '动态循环', tool: 'Runway ML', image: '🎬', description: '无限循环动画' },
+    { id: 6, title: 'AI 动画', tool: 'Pika Labs', image: '✨', description: 'AI 生成的角色动画' },
   ],
-  Audio: [
-    { id: 7, title: 'Synthwave Track', tool: 'Suno AI', image: '🎵', description: 'Electronic music composition' },
-    { id: 8, title: 'Ambient Sounds', tool: 'Udio', image: '🎶', description: 'Relaxing ambient music' },
+  音频: [
+    { id: 7, title: '合成波音轨', tool: 'Suno AI', image: '🎵', description: '电子音乐作品' },
+    { id: 8, title: '环境音效', tool: 'Udio', image: '🎶', description: '舒缓的环境音乐' },
   ],
-  Writing: [
-    { id: 9, title: 'Prompt Engineering', tool: 'GPT-4', image: '📝', description: 'Advanced prompt collection' },
-    { id: 10, title: 'AI Stories', tool: 'Claude', image: '📖', description: 'AI-generated short stories' },
+  写作: [
+    { id: 9, title: '提示工程', tool: 'GPT-4', image: '📝', description: '高级提示词集合' },
+    { id: 10, title: 'AI 故事', tool: 'Claude', image: '📖', description: 'AI 生成的短篇小说' },
   ],
 };
 
@@ -55,10 +55,10 @@ export default function PortfolioPage() {
           className="text-center mb-12"
         >
           <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-            Creative Portfolio
+            创意作品集
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Explore my collection of AI-generated artworks, videos, audio, and writings
+            探索我的 AI 生成艺术、视频、音频和写作作品集
           </p>
         </motion.div>
 
@@ -81,7 +81,7 @@ export default function PortfolioPage() {
                   onClick={() => setSelectedTool(null)}
                   className="rounded-full"
                 >
-                  All Tools
+                  所有工具
                 </Button>
                 {tools.map((tool) => (
                   <Button
@@ -135,7 +135,7 @@ export default function PortfolioPage() {
                   animate={{ opacity: 1 }}
                   className="text-center py-20 text-muted-foreground"
                 >
-                  No items found for this filter
+                  没有找到符合该筛选的作品
                 </motion.div>
               )}
             </TabsContent>

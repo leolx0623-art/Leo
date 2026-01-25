@@ -17,9 +17,9 @@ export default function ContactPage() {
     message: '',
   });
   const [guestbookMessages, setGuestbookMessages] = useState([
-    { id: 1, name: 'Alex Chen', message: 'Amazing portfolio! Love the cyberpunk aesthetic.', date: '2024-01-15' },
-    { id: 2, name: 'Sarah Lee', message: 'Your AI-generated art is incredible. Would love to collaborate!', date: '2024-01-14' },
-    { id: 3, name: 'Mike Zhang', message: 'Great work on the video projects. Very inspiring!', date: '2024-01-13' },
+    { id: 1, name: '陈小伟', message: '太棒了的作品集！喜欢这种赛博朋克美学。', date: '2024-01-15' },
+    { id: 2, name: '李小红', message: '你的 AI 生成艺术太令人惊叹了。非常期待合作！', date: '2024-01-14' },
+    { id: 3, name: '张小明', message: '视频项目做得太好了。非常受启发！', date: '2024-01-13' },
   ]);
   const [guestbookInput, setGuestbookInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,10 +28,10 @@ export default function ContactPage() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
+    // 模拟表单提交
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    alert('Message sent successfully! I will get back to you soon.');
+    alert('消息发送成功！我会尽快回复您。');
     setFormData({ name: '', email: '', subject: '', message: '' });
     setIsSubmitting(false);
   };
@@ -42,7 +42,7 @@ export default function ContactPage() {
 
     const newMessage = {
       id: Date.now(),
-      name: 'Guest',
+      name: '访客',
       message: guestbookInput,
       date: new Date().toISOString().split('T')[0],
     };
@@ -52,9 +52,9 @@ export default function ContactPage() {
   };
 
   const downloadResume = () => {
-    // Simulate resume download
-    alert('Resume download started! (This would download a PDF in production)');
-    // In production, this would track analytics and download the actual file
+    // 模拟简历下载
+    alert('简历下载已开始！（生产环境中会下载 PDF 文件）');
+    // 在生产环境中，这将跟踪分析并下载实际文件
   };
 
   return (
@@ -70,10 +70,10 @@ export default function ContactPage() {
           className="text-center mb-12"
         >
           <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Get in Touch
+            联系我
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Have a project in mind? Let's create something amazing together!
+            有项目想法吗？让我们一起创造一些惊人的东西吧！
           </p>
         </motion.div>
 
@@ -88,22 +88,22 @@ export default function ContactPage() {
               <CardHeader className="bg-gradient-to-r from-green-900/20 to-blue-900/20 border-b">
                 <CardTitle className="flex items-center gap-2">
                   <Mail className="w-6 h-6 text-green-400" />
-                  Send a Message
+                  发送消息
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <form onSubmit={handleContactSubmit} className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Name</label>
+                    <label className="text-sm font-medium mb-2 block">姓名</label>
                     <Input
-                      placeholder="Your name"
+                      placeholder="您的姓名"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       required
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Email</label>
+                    <label className="text-sm font-medium mb-2 block">邮箱</label>
                     <Input
                       type="email"
                       placeholder="your@email.com"
@@ -113,18 +113,18 @@ export default function ContactPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Subject</label>
+                    <label className="text-sm font-medium mb-2 block">主题</label>
                     <Input
-                      placeholder="Project inquiry, collaboration, etc."
+                      placeholder="项目咨询、合作等"
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                       required
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Message</label>
+                    <label className="text-sm font-medium mb-2 block">消息</label>
                     <Textarea
-                      placeholder="Tell me about your project..."
+                      placeholder="告诉我关于您的项目..."
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       required
@@ -136,7 +136,7 @@ export default function ContactPage() {
                     className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Sending...' : 'Send Message'}
+                    {isSubmitting ? '发送中...' : '发送消息'}
                   </Button>
                 </form>
               </CardContent>
@@ -155,22 +155,22 @@ export default function ContactPage() {
               <CardHeader className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-b">
                 <CardTitle className="flex items-center gap-2">
                   <Download className="w-6 h-6 text-purple-400" />
-                  Resume
+                  简历
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <p className="text-muted-foreground mb-4">
-                  Download my full resume to learn more about my experience and skills.
+                  下载我的完整简历，了解更多关于我的经验和技能。
                 </p>
                 <Button
                   onClick={downloadResume}
                   className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Download Resume
+                  下载简历
                 </Button>
                 <p className="text-xs text-muted-foreground mt-2 text-center">
-                  234 downloads
+                  234 次下载
                 </p>
               </CardContent>
             </Card>
@@ -178,7 +178,7 @@ export default function ContactPage() {
             {/* Contact Info */}
             <Card>
               <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
+                <CardTitle>联系信息</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
@@ -187,11 +187,11 @@ export default function ContactPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <Phone className="w-5 h-5 text-blue-400" />
-                  <span>+1 (555) 123-4567</span>
+                  <span>+86 138-8888-8888</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <MapPin className="w-5 h-5 text-purple-400" />
-                  <span>San Francisco, CA</span>
+                  <span>中国，北京</span>
                 </div>
               </CardContent>
             </Card>
@@ -199,20 +199,20 @@ export default function ContactPage() {
             {/* Social Links */}
             <Card>
               <CardHeader>
-                <CardTitle>Follow Me</CardTitle>
+                <CardTitle>关注我</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex gap-2 flex-wrap">
                   <Button variant="outline" size="sm" asChild>
                     <a href="#" target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="w-4 h-4 mr-2" />
-                      Twitter
+                      微博
                     </a>
                   </Button>
                   <Button variant="outline" size="sm" asChild>
                     <a href="#" target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="w-4 h-4 mr-2" />
-                      LinkedIn
+                      领英
                     </a>
                   </Button>
                   <Button variant="outline" size="sm" asChild>
@@ -224,7 +224,7 @@ export default function ContactPage() {
                   <Button variant="outline" size="sm" asChild>
                     <a href="#" target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="w-4 h-4 mr-2" />
-                      Instagram
+                      抖音
                     </a>
                   </Button>
                 </div>
@@ -243,14 +243,14 @@ export default function ContactPage() {
             <CardHeader className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border-b">
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="w-6 h-6 text-blue-400" />
-                Guestbook
+                访客留言
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               <form onSubmit={handleGuestbookSubmit} className="mb-6">
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Leave a message..."
+                    placeholder="留下一条消息..."
                     value={guestbookInput}
                     onChange={(e) => setGuestbookInput(e.target.value)}
                     className="flex-1"
@@ -259,7 +259,7 @@ export default function ContactPage() {
                     type="submit"
                     className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
                   >
-                    Post
+                    发布
                   </Button>
                 </div>
               </form>

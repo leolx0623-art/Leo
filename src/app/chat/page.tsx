@@ -20,7 +20,7 @@ export default function ChatPage() {
     {
       id: '1',
       role: 'assistant',
-      content: "Hello! I'm the AI Digital Twin of the creator. I'm here to answer your questions about my work, services, pricing, and background. How can I help you today?",
+      content: "你好！我是创作者的 AI 数字分身。我这里可以回答你关于我的作品、服务、价格和背景的问题。今天我能为你做些什么？",
       timestamp: new Date(),
     },
   ]);
@@ -85,7 +85,7 @@ export default function ChatPage() {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again later.',
+        content: '抱歉，我遇到了一个错误。请稍后再试。',
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -107,11 +107,11 @@ export default function ChatPage() {
           className="text-center mb-8"
         >
           <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-            AI Digital Twin
+            AI 数字分身
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto flex items-center justify-center gap-2">
             <Sparkles className="w-5 h-5" />
-            Chat with my AI assistant powered by RAG technology
+            与由 RAG 技术驱动的 AI 助手交流
           </p>
         </motion.div>
 
@@ -120,7 +120,7 @@ export default function ChatPage() {
           <CardHeader className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-b">
             <CardTitle className="flex items-center gap-2">
               <Bot className="w-6 h-6 text-purple-400" />
-              Digital Twin Chat
+              数字分身交流
             </CardTitle>
           </CardHeader>
           
@@ -194,7 +194,7 @@ export default function ChatPage() {
               <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask me about my work, services, pricing..."
+                placeholder="询问我关于我的作品、服务、价格..."
                 className="min-h-[60px] resize-none"
                 disabled={isLoading}
                 onKeyDown={(e) => {
@@ -223,8 +223,8 @@ export default function ChatPage() {
           transition={{ delay: 0.3 }}
           className="mt-8 text-center text-sm text-muted-foreground"
         >
-          <p>This AI assistant is powered by Retrieval Augmented Generation (RAG)</p>
-          <p className="mt-1">System Prompt: "You are the AI Digital Twin of the creator. Act as them. Use their knowledge base to answer inquiries about services, pricing, and background."</p>
+          <p>此 AI 助手由检索增强生成（RAG）技术驱动</p>
+          <p className="mt-1">系统提示词："你是创作者的 AI 数字分身。以他们的身份行事。使用他们的知识库来回答关于服务、价格和背景的问题。"</p>
         </motion.div>
       </main>
     </div>
