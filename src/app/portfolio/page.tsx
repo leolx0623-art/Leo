@@ -412,7 +412,7 @@ export default function PortfolioPage() {
             创意作品集
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            探索我的 AI 生成艺术、视频和创意作品
+            leo的AI数字分身
           </p>
         </motion.div>
 
