@@ -253,7 +253,7 @@ export function ProfileEditor({ open, onOpenChange, initialData, onSave }: Profi
               <div className="space-y-6">
                 {data.experiences.map((exp, index) => (
                   <div key={exp.id} className="p-4 rounded-lg border bg-card">
-                    <div className="flex justify-between items-start mb-4 pt-2">
+                    <div className="flex justify-between items-start mb-4 pt-4">
                       <h4 className="font-semibold">工作经历 {index + 1}</h4>
                       {data.experiences.length > 1 && (
                         <Button
@@ -334,7 +334,7 @@ export function ProfileEditor({ open, onOpenChange, initialData, onSave }: Profi
               <div className="space-y-6">
                 {data.skillCategories.map((category) => (
                   <div key={category.id} className="p-4 rounded-lg border bg-card">
-                    <div className="flex items-center gap-2 mb-3 pt-2">
+                    <div className="flex items-center gap-2 mb-4 pt-4">
                       <span className="text-xl">{category.icon}</span>
                       <Label className="text-base">{category.name}</Label>
                     </div>
