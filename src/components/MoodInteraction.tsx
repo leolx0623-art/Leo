@@ -27,8 +27,8 @@ const MOOD_CONFIG: Record<
     color: string;
     bgColor: string;
     animation: string;
-    robotPosition: string;
-    boyPosition: string;
+    creatorPosition: string;
+    assistantPosition: string;
     scale: number;
   }
 > = {
@@ -38,8 +38,8 @@ const MOOD_CONFIG: Record<
     color: 'from-yellow-400 to-orange-400',
     bgColor: 'bg-yellow-500/10',
     animation: 'animate-bounce',
-    robotPosition: 'translate-y-0 rotate-0',
-    boyPosition: 'translate-y-0 rotate-0',
+    creatorPosition: 'translate-y-0 rotate-0',
+    assistantPosition: 'translate-y-0 rotate-0',
     scale: 1,
   },
   excited: {
@@ -48,8 +48,8 @@ const MOOD_CONFIG: Record<
     color: 'from-pink-400 to-purple-400',
     bgColor: 'bg-pink-500/10',
     animation: 'animate-pulse',
-    robotPosition: 'translate-y-[-10px] rotate-12',
-    boyPosition: 'translate-y-[-15px] -rotate-12',
+    creatorPosition: 'translate-y-[-15px] -rotate-12',
+    assistantPosition: 'translate-y-[-10px] rotate-12',
     scale: 1.1,
   },
   tipsy: {
@@ -58,8 +58,8 @@ const MOOD_CONFIG: Record<
     color: 'from-purple-400 to-indigo-400',
     bgColor: 'bg-purple-500/10',
     animation: 'animate-pulse',
-    robotPosition: 'translate-y-[-5px] -rotate-6',
-    boyPosition: 'translate-y-[-5px] rotate-6',
+    creatorPosition: 'translate-y-[-5px] rotate-6',
+    assistantPosition: 'translate-y-[-5px] -rotate-6',
     scale: 0.95,
   },
   sad: {
@@ -68,8 +68,8 @@ const MOOD_CONFIG: Record<
     color: 'from-blue-400 to-cyan-400',
     bgColor: 'bg-blue-500/10',
     animation: '',
-    robotPosition: 'translate-y-[10px] -rotate-5',
-    boyPosition: 'translate-y-[10px] rotate-5',
+    creatorPosition: 'translate-y-[10px] rotate-5',
+    assistantPosition: 'translate-y-[10px] -rotate-5',
     scale: 0.9,
   },
   angry: {
@@ -78,8 +78,8 @@ const MOOD_CONFIG: Record<
     color: 'from-red-400 to-orange-500',
     bgColor: 'bg-red-500/10',
     animation: 'animate-shake',
-    robotPosition: 'translate-y-[-5px] rotate-8',
-    boyPosition: 'translate-y-[-5px] -rotate-8',
+    creatorPosition: 'translate-y-[-5px] -rotate-8',
+    assistantPosition: 'translate-y-[-5px] rotate-8',
     scale: 1.05,
   },
   uneasy: {
@@ -88,8 +88,8 @@ const MOOD_CONFIG: Record<
     color: 'from-gray-400 to-slate-400',
     bgColor: 'bg-gray-500/10',
     animation: 'animate-pulse',
-    robotPosition: 'translate-x-[5px] rotate-3',
-    boyPosition: 'translate-x-[-5px] -rotate-3',
+    creatorPosition: 'translate-x-[-5px] -rotate-3',
+    assistantPosition: 'translate-x-[5px] rotate-3',
     scale: 0.95,
   },
   anxious: {
@@ -98,8 +98,8 @@ const MOOD_CONFIG: Record<
     color: 'from-amber-400 to-yellow-500',
     bgColor: 'bg-amber-500/10',
     animation: 'animate-bounce',
-    robotPosition: 'translate-x-[-3px] rotate-0',
-    boyPosition: 'translate-x-[3px] rotate-0',
+    creatorPosition: 'translate-x-[3px] rotate-0',
+    assistantPosition: 'translate-x-[-3px] rotate-0',
     scale: 1,
   },
   confused: {
@@ -108,8 +108,8 @@ const MOOD_CONFIG: Record<
     color: 'from-teal-400 to-green-400',
     bgColor: 'bg-teal-500/10',
     animation: '',
-    robotPosition: 'rotate-0',
-    boyPosition: 'rotate-0',
+    creatorPosition: 'rotate-0',
+    assistantPosition: 'rotate-0',
     scale: 0.95,
   },
   smiling: {
@@ -118,8 +118,8 @@ const MOOD_CONFIG: Record<
     color: 'from-green-400 to-emerald-400',
     bgColor: 'bg-green-500/10',
     animation: '',
-    robotPosition: 'translate-y-0 rotate-0',
-    boyPosition: 'translate-y-0 rotate-0',
+    creatorPosition: 'translate-y-0 rotate-0',
+    assistantPosition: 'translate-y-0 rotate-0',
     scale: 1,
   },
   calm: {
@@ -128,8 +128,8 @@ const MOOD_CONFIG: Record<
     color: 'from-cyan-400 to-blue-400',
     bgColor: 'bg-cyan-500/10',
     animation: '',
-    robotPosition: 'translate-y-0 rotate-0',
-    boyPosition: 'translate-y-0 rotate-0',
+    creatorPosition: 'translate-y-0 rotate-0',
+    assistantPosition: 'translate-y-0 rotate-0',
     scale: 1,
   },
   dreamy: {
@@ -138,8 +138,8 @@ const MOOD_CONFIG: Record<
     color: 'from-indigo-400 to-purple-400',
     bgColor: 'bg-indigo-500/10',
     animation: 'animate-pulse',
-    robotPosition: 'translate-y-[-8px] rotate-0',
-    boyPosition: 'translate-y-[-8px] rotate-0',
+    creatorPosition: 'translate-y-[-8px] rotate-0',
+    assistantPosition: 'translate-y-[-8px] rotate-0',
     scale: 0.9,
   },
   energetic: {
@@ -148,8 +148,8 @@ const MOOD_CONFIG: Record<
     color: 'from-orange-400 to-red-400',
     bgColor: 'bg-orange-500/10',
     animation: 'animate-bounce',
-    robotPosition: 'translate-y-[-20px] rotate-15',
-    boyPosition: 'translate-y-[-20px] -rotate-15',
+    creatorPosition: 'translate-y-[-20px] -rotate-15',
+    assistantPosition: 'translate-y-[-20px] rotate-15',
     scale: 1.15,
   },
 };
@@ -168,8 +168,8 @@ interface MoodState {
 }
 
 interface CharactersImage {
-  robotUrl: string;
-  boyUrl: string;
+  creatorUrl: string;
+  assistantUrl: string;
   timestamp: number;
 }
 
@@ -299,46 +299,46 @@ export function MoodInteraction() {
       {/* 左右分栏布局 */}
       <div className="grid grid-cols-2 gap-4">
         {/* 左侧：角色互动区域 */}
-        <div className="relative min-h-[180px] flex items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-purple-500/5 to-pink-500/5">
+        <div className="relative min-h-[200px] flex items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-purple-500/5 to-pink-500/5">
           {/* 背景光晕 */}
           <div className="absolute inset-0 opacity-30">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl" />
           </div>
 
-          {/* AI 机器人 */}
+          {/* AIGC创作者 */}
           <motion.div
-            key={`robot-${currentMood}`}
+            key={`creator-${currentMood}`}
             animate={{
-              y: moodConfig.robotPosition.includes('translate-y')
-                ? parseInt(moodConfig.robotPosition.match(/translate-y\[([-\d]+)px\]/)?.[1] || '0')
+              y: moodConfig.creatorPosition.includes('translate-y')
+                ? parseInt(moodConfig.creatorPosition.match(/translate-y\[([-\d]+)px\]/)?.[1] || '0')
                 : 0,
-              x: moodConfig.robotPosition.includes('translate-x')
-                ? parseInt(moodConfig.robotPosition.match(/translate-x\[([-\d]+)px\]/)?.[1] || '0')
+              x: moodConfig.creatorPosition.includes('translate-x')
+                ? parseInt(moodConfig.creatorPosition.match(/translate-x\[([-\d]+)px\]/)?.[1] || '0')
                 : 0,
-              rotate: moodConfig.robotPosition.includes('rotate')
-                ? parseInt(moodConfig.robotPosition.match(/rotate([-\d]+)/)?.[1] || '0')
+              rotate: moodConfig.creatorPosition.includes('rotate')
+                ? parseInt(moodConfig.creatorPosition.match(/rotate([-\d]+)/)?.[1] || '0')
                 : 0,
               scale: moodConfig.scale,
             }}
             transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            className="relative w-24 h-32 flex-shrink-0 z-10"
+            className="relative w-28 h-36 flex-shrink-0 z-10"
           >
-            {characters?.robotUrl ? (
+            {characters?.creatorUrl ? (
               <div className="relative w-full h-full">
                 <img
-                  src={characters.robotUrl}
-                  alt="AI Robot"
+                  src={characters.creatorUrl}
+                  alt="Creator"
                   className="w-full h-full object-contain mix-blend-multiply filter drop-shadow-2xl"
                   style={{
-                    filter: 'drop-shadow(0 10px 30px rgba(99, 102, 241, 0.4))'
+                    filter: 'drop-shadow(0 10px 30px rgba(239, 68, 68, 0.4))'
                   }}
                 />
               </div>
             ) : (
-              // 默认机器人形象
+              // 默认创作者形象
               <div className="w-full h-full relative">
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg">
-                  <span className="text-4xl">🤖</span>
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center shadow-lg">
+                  <span className="text-4xl">👨‍💻</span>
                 </div>
               </div>
             )}
@@ -360,40 +360,40 @@ export function MoodInteraction() {
             ✨
           </motion.div>
 
-          {/* 皮克斯风格小男孩 */}
+          {/* AI助手 */}
           <motion.div
-            key={`boy-${currentMood}`}
+            key={`assistant-${currentMood}`}
             animate={{
-              y: moodConfig.boyPosition.includes('translate-y')
-                ? parseInt(moodConfig.boyPosition.match(/translate-y\[([-\d]+)px\]/)?.[1] || '0')
+              y: moodConfig.assistantPosition.includes('translate-y')
+                ? parseInt(moodConfig.assistantPosition.match(/translate-y\[([-\d]+)px\]/)?.[1] || '0')
                 : 0,
-              x: moodConfig.boyPosition.includes('translate-x')
-                ? parseInt(moodConfig.boyPosition.match(/translate-x\[([-\d]+)px\]/)?.[1] || '0')
+              x: moodConfig.assistantPosition.includes('translate-x')
+                ? parseInt(moodConfig.assistantPosition.match(/translate-x\[([-\d]+)px\]/)?.[1] || '0')
                 : 0,
-              rotate: moodConfig.boyPosition.includes('rotate')
-                ? parseInt(moodConfig.boyPosition.match(/rotate([-\d]+)/)?.[1] || '0')
+              rotate: moodConfig.assistantPosition.includes('rotate')
+                ? parseInt(moodConfig.assistantPosition.match(/rotate([-\d]+)/)?.[1] || '0')
                 : 0,
               scale: moodConfig.scale,
             }}
             transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            className="relative w-24 h-32 flex-shrink-0 z-10"
+            className="relative w-28 h-36 flex-shrink-0 z-10"
           >
-            {characters?.boyUrl ? (
+            {characters?.assistantUrl ? (
               <div className="relative w-full h-full">
                 <img
-                  src={characters.boyUrl}
-                  alt="Boy"
+                  src={characters.assistantUrl}
+                  alt="AI Assistant"
                   className="w-full h-full object-contain mix-blend-multiply filter drop-shadow-2xl"
                   style={{
-                    filter: 'drop-shadow(0 10px 30px rgba(245, 158, 11, 0.4))'
+                    filter: 'drop-shadow(0 10px 30px rgba(139, 92, 246, 0.4))'
                   }}
                 />
               </div>
             ) : (
-              // 默认小男孩形象
+              // 默认AI助手形象
               <div className="w-full h-full relative">
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-300 to-orange-400 flex items-center justify-center shadow-lg">
-                  <span className="text-4xl">👦</span>
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center shadow-lg">
+                  <span className="text-4xl">🤖</span>
                 </div>
               </div>
             )}
