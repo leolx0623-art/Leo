@@ -168,14 +168,15 @@ export default function ContactPage() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <div className="flex flex-col lg:flex-row gap-8 mb-12 items-stretch">
           {/* Contact Form */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
+            className="flex-1"
           >
-            <Card className="border-green-500/20 shadow-2xl shadow-green-500/10">
+            <Card className="border-green-500/20 shadow-2xl shadow-green-500/10 h-full">
               <CardHeader className="bg-gradient-to-r from-green-900/20 to-blue-900/20 border-b !flex !flex-row !items-center !justify-center !min-h-[64px] !px-6">
                 <CardTitle className="flex items-center gap-2">
                   <Mail className="w-6 h-6 text-green-400" />
@@ -239,7 +240,7 @@ export default function ContactPage() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="space-y-6"
+            className="flex-1 flex flex-col space-y-6"
           >
             {/* Resume Download */}
             <Card className="border-purple-500/20 shadow-xl shadow-purple-500/10">
@@ -270,7 +271,7 @@ export default function ContactPage() {
             </Card>
 
             {/* Contact Info */}
-            <Card>
+            <Card className="flex-1">
               <CardHeader className="!flex !flex-row !items-center !justify-between !min-h-[64px] !px-6">
                 <CardTitle>联系信息</CardTitle>
                 <Button
@@ -299,7 +300,7 @@ export default function ContactPage() {
             </Card>
 
             {/* Social Links */}
-            <Card>
+            <Card className="flex-1">
               <CardHeader className="!flex !flex-row !items-center !justify-center !min-h-[64px] !px-6">
                 <CardTitle>关注我</CardTitle>
               </CardHeader>
