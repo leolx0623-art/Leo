@@ -6,20 +6,60 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Navigation } from '@/components/navigation';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { ArrowRight, Sparkles, Bot, Play } from 'lucide-react';
+import { ArrowRight, Sparkles, Bot, Play, Link2, Film, Image as ImageIcon, Music, Package } from 'lucide-react';
 import Link from 'next/link';
+
+// 分类配置
+const CATEGORY_CONFIG = {
+  image: { label: '图像', icon: ImageIcon, emoji: '🖼️', color: 'from-purple-500 to-pink-500' },
+  video: { label: '视频', icon: Film, emoji: '🎬', color: 'from-red-500 to-orange-500' },
+  audio: { label: '音频', icon: Music, emoji: '🎵', color: 'from-blue-500 to-cyan-500' },
+  website: { label: '网址', icon: Link2, emoji: '🌐', color: 'from-green-500 to-teal-500' },
+  other: { label: '其他', icon: Package, emoji: '📦', color: 'from-gray-500 to-slate-500' },
+} as const;
+
+interface Portfolio {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  websiteUrl?: string;
+}
 
 export default function Home() {
   const [isAIGreetingOpen, setIsAIGreetingOpen] = useState(false);
+  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [loading, setLoading] = useState(true);
   const { scrollY } = useScroll();
   const heroOpacity = useTransform(scrollY, [0, 300], [1, 0]);
   const heroScale = useTransform(scrollY, [0, 300], [1, 0.9]);
 
-  const featuredWorks = [
-    { id: 1, title: '霓虹都市', category: '视觉', image: '🌃' },
-    { id: 2, title: '赛博动画', category: '视频', image: '🎬' },
-    { id: 3, title: '电子梦境', category: '音频', image: '🎵' },
-  ];
+  useEffect(() => {
+    fetchPortfolios();
+  }, []);
+
+  const fetchPortfolios = async () => {
+    try {
+      const response = await fetch('/api/portfolios');
+      const data = await response.json();
+      setPortfolios(data);
+    } catch (error) {
+      console.error('获取作品集失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 按分类整理作品集
+  const categorizedPortfolios = portfolios.reduce((acc, portfolio) => {
+    if (!acc[portfolio.category]) {
+      acc[portfolio.category] = [];
+    }
+    acc[portfolio.category].push(portfolio);
+    return acc;
+  }, {} as Record<string, Portfolio[]>);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-purple-950/20">
@@ -118,7 +158,7 @@ export default function Home() {
         </motion.div>
       </motion.div>
 
-      {/* Featured Works Section */}
+      {/* Featured Works Section - Categories */}
       <section className="py-20 container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -128,41 +168,98 @@ export default function Home() {
         >
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              精选作品
+              精选合集
             </h2>
             <p className="text-xl text-muted-foreground">
-              我的创作之旅中的精彩瞬间
+              按分类探索我的创作作品
             </p>
           </div>
 
-          <Carousel className="max-w-5xl mx-auto">
-            <CarouselContent>
-              {featuredWorks.map((work, index) => (
-                <CarouselItem key={work.id}>
-                  <Card className="border-purple-500/20 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300">
-                    <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center text-9xl">
-                      {work.image}
-                    </div>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-2xl font-bold mb-2">{work.title}</h3>
-                          <p className="text-muted-foreground">{work.category}</p>
+          {loading ? (
+            <div className="text-center py-20 text-muted-foreground">
+              加载中...
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+              {Object.entries(CATEGORY_CONFIG).map(([categoryKey, config]) => {
+                const categoryPortfolios = categorizedPortfolios[categoryKey] || [];
+                const count = categoryPortfolios.length;
+                const firstPortfolio = categoryPortfolios[0];
+
+                return (
+                  <Link key={categoryKey} href={`/portfolio?category=${categoryKey}`}>
+                    <Card className="group overflow-hidden border-purple-500/20 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 cursor-pointer h-full">
+                      {/* 预览图区域 */}
+                      <div className="relative aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center overflow-hidden">
+                        {/* 显示第一个作品的预览图 */}
+                        {firstPortfolio?.imageUrl && (
+                          <img
+                            src={firstPortfolio.imageUrl}
+                            alt={firstPortfolio.title}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        )}
+                        {firstPortfolio?.videoUrl && !firstPortfolio.imageUrl && (
+                          <video
+                            src={firstPortfolio.videoUrl}
+                            className="w-full h-full object-cover"
+                            muted
+                            preload="metadata"
+                          />
+                        )}
+                        {firstPortfolio?.websiteUrl && !firstPortfolio.imageUrl && !firstPortfolio.videoUrl && (
+                          <div className="w-full h-full p-6 flex flex-col items-center justify-center bg-gradient-to-br from-blue-900/40 to-purple-900/40">
+                            <Link2 className="w-16 h-16 text-white/80 mb-3" />
+                            <p className="text-white/90 text-sm font-medium text-center line-clamp-2">
+                              {firstPortfolio.title}
+                            </p>
+                          </div>
+                        )}
+                        {!firstPortfolio && (
+                          <div className="text-8xl opacity-50">{config.emoji}</div>
+                        )}
+
+                        {/* 渐变遮罩 */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+
+                        {/* 分类标签 */}
+                        <div className="absolute bottom-4 left-4">
+                          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r ${config.color} text-white font-medium text-sm shadow-lg`}>
+                            <span>{config.emoji}</span>
+                            <span>{config.label}</span>
+                          </div>
                         </div>
-                        <Button variant="outline" size="icon" asChild>
-                          <Link href="/portfolio">
-                            <ArrowRight className="w-5 h-5" />
-                          </Link>
-                        </Button>
+
+                        {/* 作品数量徽章 */}
+                        {count > 0 && (
+                          <div className="absolute top-4 right-4">
+                            <div className="px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white text-sm font-medium border border-white/20">
+                              {count} 个作品
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="left-2" />
-            <CarouselNext className="right-2" />
-          </Carousel>
+
+                      {/* 内容区域 */}
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="text-2xl font-bold mb-2">{config.label}合集</h3>
+                            <p className="text-muted-foreground">
+                              {count > 0
+                                ? `包含 ${count} 件${config.label}作品`
+                                : `暂无${config.label}作品`}
+                            </p>
+                          </div>
+                          <ArrowRight className="w-5 h-5 text-purple-400 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </motion.div>
       </section>
 
