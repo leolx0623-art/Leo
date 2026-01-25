@@ -165,18 +165,29 @@ function shouldRecommendPortfolios(message: string): boolean {
 function shouldGenerateImage(message: string): boolean {
   const imageKeywords = [
     '生成图片', '画个', '创作一张', '帮我画', '画一张', '生成一张',
+    '帮我生成', '生成', '画', '画个', '创作',
     'show me', 'create image', 'generate image', 'draw', 'paint',
     '设计', '海报', 'logo', '插图', '视觉', '图片', 'photo',
-    '场景', '风景', '人物', '角色', '插画', '风格', '效果'
+    '场景', '风景', '人物', '角色', '插画', '风格', '效果',
+    'image', 'picture', 'make', 'create', 'picture of', 'photo of'
   ];
 
   const lowerMessage = message.toLowerCase();
-  return imageKeywords.some(keyword => lowerMessage.includes(keyword));
+  const match = imageKeywords.some(keyword => lowerMessage.includes(keyword));
+
+  if (match) {
+    console.log('🎨 检测到生图请求，关键词匹配成功');
+  } else {
+    console.log('💬 普通对话，未检测到生图关键词');
+  }
+
+  return match;
 }
 
 // 生成图片
 async function generateImage(prompt: string): Promise<string | null> {
   try {
+    console.log('🖼️ 开始生成图片，提示词:', prompt);
     const config = new Config();
     const imageClient = new ImageGenerationClient(config);
 
@@ -189,13 +200,14 @@ async function generateImage(prompt: string): Promise<string | null> {
     const helper = imageClient.getResponseHelper(response);
 
     if (helper.success && helper.imageUrls.length > 0) {
+      console.log('✅ 图片生成成功:', helper.imageUrls[0]);
       return helper.imageUrls[0];
     }
 
-    console.error('图片生成失败:', helper.errorMessages);
+    console.error('❌ 图片生成失败:', helper.errorMessages);
     return null;
   } catch (error) {
-    console.error('生成图片时出错:', error);
+    console.error('💥 生成图片时出错:', error);
     return null;
   }
 }
@@ -204,8 +216,11 @@ export async function POST(request: NextRequest) {
   try {
     const { message, conversationHistory } = await request.json();
 
+    console.log('📥 收到用户消息:', message);
+
     // 检查是否需要生成图片
     const needImage = shouldGenerateImage(message);
+    console.log('🔍 是否需要生图:', needImage);
 
     // 如果需要生成图片，先生成图片
     if (needImage) {
