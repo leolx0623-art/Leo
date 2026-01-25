@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Navigation } from '@/components/navigation';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { ProfileEditor } from '@/components/profile-editor';
+import { ScrollIndicator } from '@/components/scroll-indicator';
 import { ArrowRight, Sparkles, Bot, Play, Link2, Film, Image as ImageIcon, Music, Package, Mail, MapPin, Phone, Github, Twitter, Linkedin, Award, Code, Palette, Video, Zap, Edit } from 'lucide-react';
 import Link from 'next/link';
 
@@ -528,6 +529,9 @@ export default function Home() {
             onSave={handleProfileSave}
           />
         </motion.div>
+        
+        {/* 滚动指示器 */}
+        <ScrollIndicator color="purple" />
       </section>
 
       {/* Featured Works Section - Categories */}
@@ -635,6 +639,9 @@ export default function Home() {
             </div>
           )}
         </motion.div>
+        
+        {/* 滚动指示器 */}
+        <ScrollIndicator color="blue" />
       </section>
 
       {/* About Preview Section */}
@@ -692,6 +699,9 @@ export default function Home() {
             </CardContent>
           </Card>
         </motion.div>
+        
+        {/* 滚动指示器 */}
+        <ScrollIndicator color="green" />
       </section>
 
       {/* AI Greeting Floating Widget */}
