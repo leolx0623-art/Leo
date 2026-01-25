@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { LLMClient, Config } from 'coze-coding-dev-sdk';
 
 // System Prompt for the AI Digital Twin
 const SYSTEM_PROMPT = `你是创作者的 AI 数字分身。以他们的身份行事。使用他们的知识库来回答关于服务、价格和背景的问题。
@@ -23,17 +24,6 @@ export async function POST(request: NextRequest) {
   try {
     const { message, conversationHistory } = await request.json();
 
-    // Get the Doubao integration details
-    const integrationDetailResponse = await fetch(`${process.env.INTEGRATION_BASE_URL || 'http://localhost:9000'}/api/v1/integrations/integration-doubao-seed`, {
-      method: 'GET',
-    });
-
-    if (!integrationDetailResponse.ok) {
-      throw new Error('Failed to get integration details');
-    }
-
-    const integrationData = await integrationDetailResponse.json();
-    
     // Build the conversation context
     const messages = [
       { role: 'system', content: SYSTEM_PROMPT },
@@ -41,66 +31,39 @@ export async function POST(request: NextRequest) {
       { role: 'user', content: message },
     ];
 
-    // Call Doubao API
-    const aiResponse = await fetch(integrationData.usageGuide.apiEndpoint || 'https://ark.cn-beijing.volces.com/api/v3/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.DOUBAO_API_KEY || integrationData.usageGuide.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: integrationData.usageGuide.modelId || 'doubao-pro-4k',
-        messages,
-        stream: true,
-      }),
+    // Initialize LLM client with SDK
+    const config = new Config();
+    const client = new LLMClient(config);
+
+    // Use streaming for real-time responses
+    const stream = client.stream(messages, {
+      model: 'doubao-seed-1-8-251228',
+      temperature: 0.7,
     });
 
-    if (!aiResponse.ok) {
-      throw new Error('Failed to get AI response');
-    }
-
-    // Return streaming response
+    // Create a readable stream for the response
     const encoder = new TextEncoder();
-    const stream = new ReadableStream({
+    const responseStream = new ReadableStream({
       async start(controller) {
-        const reader = aiResponse.body?.getReader();
-        if (!reader) {
-          controller.close();
-          return;
-        }
-
         try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n');
-
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const data = line.slice(6);
-                if (data === '[DONE]') continue;
-
-                try {
-                  const parsed = JSON.parse(data);
-                  const content = parsed.choices?.[0]?.delta?.content;
-                  if (content) {
-                    controller.enqueue(encoder.encode(content));
-                  }
-                } catch (e) {
-                  // Skip invalid JSON
-                }
-              }
+          for await (const chunk of stream) {
+            if (chunk.content) {
+              const text = chunk.content.toString();
+              // Send the chunk as SSE format
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: text })}\n\n`));
             }
           }
-        } finally {
+          // Send done message
+          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();
+        } catch (error) {
+          console.error('Stream error:', error);
+          controller.error(error);
         }
       },
     });
 
-    return new NextResponse(stream, {
+    return new NextResponse(responseStream, {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
@@ -116,5 +79,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-const decoder = new TextDecoder();

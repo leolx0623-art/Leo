@@ -51,6 +51,15 @@ export default function ChatPage() {
     setInput('');
     setIsLoading(true);
 
+    // Add a placeholder assistant message for streaming
+    const placeholderMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, placeholderMessage]);
+
     try {
       // Call the AI chat API
       const response = await fetch('/api/chat', {
@@ -71,24 +80,57 @@ export default function ChatPage() {
         throw new Error('Failed to get response');
       }
 
-      const data = await response.json();
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('Failed to get response reader');
+      }
 
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: data.response || 'I apologize, but I encountered an error processing your request.',
-        timestamp: new Date(),
-      };
+      const decoder = new TextDecoder();
+      let assistantMessage = '';
 
-      setMessages((prev) => [...prev, assistantMessage]);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.content) {
+                assistantMessage += parsed.content;
+                
+                // Update the last message with accumulated content
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  const lastMessage = newMessages[newMessages.length - 1];
+                  if (lastMessage && lastMessage.role === 'assistant') {
+                    lastMessage.content = assistantMessage;
+                  }
+                  return newMessages;
+                });
+              }
+            } catch (e) {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
     } catch (error) {
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: '抱歉，我遇到了一个错误。请稍后再试。',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      // Update the placeholder message with error
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        const lastMessage = newMessages[newMessages.length - 1];
+        if (lastMessage && lastMessage.role === 'assistant') {
+          lastMessage.content = '抱歉，我遇到了一个错误。请稍后再试。';
+        }
+        return newMessages;
+      });
     } finally {
       setIsLoading(false);
     }
