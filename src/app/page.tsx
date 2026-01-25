@@ -184,17 +184,18 @@ export default function Home() {
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 container mx-auto px-4 text-center">
+        <div className="relative z-10 container mx-auto px-4 text-center flex items-center justify-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
+            className="flex flex-col items-center"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/30 mb-6">
+            <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/30 mb-6">
               <Sparkles className="w-4 h-4 text-purple-400" />
               <span className="text-sm text-purple-300">AI 驱动创意</span>
             </div>
-            
+
             <h1 className="text-6xl md:text-8xl font-bold mb-6">
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
                 AIGC
@@ -202,11 +203,11 @@ export default function Home() {
               <br />
               <span className="text-foreground">创作者作品集</span>
             </h1>
-            
+
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-8">
               探索 AI 生成的艺术、视频、音频和创意写作的无限可能
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
@@ -257,25 +258,25 @@ export default function Home() {
           className="max-w-6xl mx-auto relative"
         >
           {/* 标题居中优化 - 科技感装饰 */}
-          <div className="text-center mb-12 relative">
+          <div className="text-center mb-12 relative flex flex-col items-center justify-center min-h-[140px]">
             {/* 顶部装饰线 */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
-            
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-center relative">
+
+            <h2 className="text-4xl md:text-5xl font-bold text-center relative flex items-center justify-center">
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent relative inline-block">
                 个人名片
                 {/* 光晕效果 */}
                 <span className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-purple-400/20 to-purple-400/0 blur-xl" />
               </span>
             </h2>
-            
-            <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto relative">
+
+            <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto relative mt-4">
               了解我的专业背景、技能专长和工作经历
             </p>
 
             {/* 底部装饰线 */}
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
-            
+
             {/* 角落装饰 */}
             <div className="absolute top-1/2 left-0 w-4 h-4 border-l-2 border-t-2 border-purple-500/50 -translate-y-1/2" />
             <div className="absolute top-1/2 right-0 w-4 h-4 border-r-2 border-t-2 border-purple-500/50 -translate-y-1/2" />
@@ -298,11 +299,11 @@ export default function Home() {
               {/* 卡片光晕效果 */}
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5 pointer-events-none" />
               
-              <CardHeader className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-b text-center relative overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-b text-center relative overflow-hidden py-6">
                 {/* 流光效果 */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/10 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
-                
-                <CardTitle className="text-2xl flex items-center justify-center gap-2 relative">
+
+                <CardTitle className="text-2xl flex items-center justify-center gap-2 relative min-h-[40px]">
                   <Sparkles className="w-6 h-6 text-purple-400 animate-pulse" />
                   基本信息
                   <Sparkles className="w-6 h-6 text-purple-400 animate-pulse" />
@@ -445,11 +446,11 @@ export default function Home() {
                 {/* 卡片光晕效果 */}
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-cyan-500/5 pointer-events-none" />
                 
-                <CardHeader className="bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border-b relative overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border-b relative overflow-hidden py-6">
                   {/* 流光效果 */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/10 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
-                  
-                  <CardTitle className="text-xl flex items-center justify-center gap-2 relative">
+
+                  <CardTitle className="text-xl flex items-center justify-center gap-2 relative min-h-[40px]">
                     <Award className="w-5 h-5 text-blue-400 animate-pulse" />
                     专业履历
                     <Award className="w-5 h-5 text-blue-400 animate-pulse" />
@@ -479,11 +480,11 @@ export default function Home() {
                 {/* 卡片光晕效果 */}
                 <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-emerald-500/5 pointer-events-none" />
                 
-                <CardHeader className="bg-gradient-to-r from-green-900/20 to-emerald-900/20 border-b relative overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-green-900/20 to-emerald-900/20 border-b relative overflow-hidden py-6">
                   {/* 流光效果 */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-500/10 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
-                  
-                  <CardTitle className="text-xl flex items-center justify-center gap-2 relative">
+
+                  <CardTitle className="text-xl flex items-center justify-center gap-2 relative min-h-[40px]">
                     <Zap className="w-5 h-5 text-green-400 animate-pulse" />
                     技能专长
                     <Zap className="w-5 h-5 text-green-400 animate-pulse" />
@@ -537,8 +538,8 @@ export default function Home() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+          <div className="text-center mb-12 flex flex-col items-center justify-center min-h-[140px]">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 flex items-center justify-center">
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
                 精选合集
               </span>
@@ -650,8 +651,8 @@ export default function Home() {
         >
           <Card className="border-blue-500/20 bg-gradient-to-br from-blue-900/10 to-purple-900/10">
             <CardContent className="p-8 md:p-12">
-              <div className="text-center mb-8">
-                <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              <div className="text-center mb-8 flex flex-col items-center justify-center min-h-[140px]">
+                <h2 className="text-4xl md:text-5xl font-bold mb-4 flex items-center justify-center">
                   关于我
                 </h2>
                 <p className="text-xl text-muted-foreground">
