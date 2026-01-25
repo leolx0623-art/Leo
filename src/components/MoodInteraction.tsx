@@ -27,8 +27,9 @@ const MOOD_CONFIG: Record<
     color: string;
     bgColor: string;
     animation: string;
-    robotAnimation: string;
-    boyAnimation: string;
+    robotPosition: string;
+    boyPosition: string;
+    scale: number;
   }
 > = {
   happy: {
@@ -37,8 +38,9 @@ const MOOD_CONFIG: Record<
     color: 'from-yellow-400 to-orange-400',
     bgColor: 'bg-yellow-500/10',
     animation: 'animate-bounce',
-    robotAnimation: 'rotate-0',
-    boyAnimation: 'scale-100',
+    robotPosition: 'translate-y-0 rotate-0',
+    boyPosition: 'translate-y-0 rotate-0',
+    scale: 1,
   },
   excited: {
     label: '兴奋',
@@ -46,17 +48,19 @@ const MOOD_CONFIG: Record<
     color: 'from-pink-400 to-purple-400',
     bgColor: 'bg-pink-500/10',
     animation: 'animate-pulse',
-    robotAnimation: 'rotate-12',
-    boyAnimation: 'scale-110',
+    robotPosition: 'translate-y-[-10px] rotate-12',
+    boyPosition: 'translate-y-[-15px] -rotate-12',
+    scale: 1.1,
   },
   tipsy: {
     label: '微醺',
     emoji: '😵‍💫',
     color: 'from-purple-400 to-indigo-400',
     bgColor: 'bg-purple-500/10',
-    animation: 'animate-spin',
-    robotAnimation: '-rotate-6',
-    boyAnimation: 'translate-y-2',
+    animation: 'animate-pulse',
+    robotPosition: 'translate-y-[-5px] -rotate-6',
+    boyPosition: 'translate-y-[-5px] rotate-6',
+    scale: 0.95,
   },
   sad: {
     label: '难过',
@@ -64,8 +68,9 @@ const MOOD_CONFIG: Record<
     color: 'from-blue-400 to-cyan-400',
     bgColor: 'bg-blue-500/10',
     animation: '',
-    robotAnimation: '-rotate-12',
-    boyAnimation: 'scale-90',
+    robotPosition: 'translate-y-[10px] -rotate-5',
+    boyPosition: 'translate-y-[10px] rotate-5',
+    scale: 0.9,
   },
   angry: {
     label: '愤怒',
@@ -73,8 +78,9 @@ const MOOD_CONFIG: Record<
     color: 'from-red-400 to-orange-500',
     bgColor: 'bg-red-500/10',
     animation: 'animate-shake',
-    robotAnimation: 'rotate-6',
-    boyAnimation: 'scale-105',
+    robotPosition: 'translate-y-[-5px] rotate-8',
+    boyPosition: 'translate-y-[-5px] -rotate-8',
+    scale: 1.05,
   },
   uneasy: {
     label: '不安',
@@ -82,8 +88,9 @@ const MOOD_CONFIG: Record<
     color: 'from-gray-400 to-slate-400',
     bgColor: 'bg-gray-500/10',
     animation: 'animate-pulse',
-    robotAnimation: 'rotate-3',
-    boyAnimation: 'translate-x-1',
+    robotPosition: 'translate-x-[5px] rotate-3',
+    boyPosition: 'translate-x-[-5px] -rotate-3',
+    scale: 0.95,
   },
   anxious: {
     label: '焦虑',
@@ -91,8 +98,9 @@ const MOOD_CONFIG: Record<
     color: 'from-amber-400 to-yellow-500',
     bgColor: 'bg-amber-500/10',
     animation: 'animate-bounce',
-    robotAnimation: '-rotate-3',
-    boyAnimation: 'translate-x-[-1px]',
+    robotPosition: 'translate-x-[-3px] rotate-0',
+    boyPosition: 'translate-x-[3px] rotate-0',
+    scale: 1,
   },
   confused: {
     label: '迷茫',
@@ -100,8 +108,9 @@ const MOOD_CONFIG: Record<
     color: 'from-teal-400 to-green-400',
     bgColor: 'bg-teal-500/10',
     animation: '',
-    robotAnimation: 'rotate-0',
-    boyAnimation: 'scale-95',
+    robotPosition: 'rotate-0',
+    boyPosition: 'rotate-0',
+    scale: 0.95,
   },
   smiling: {
     label: '微笑',
@@ -109,8 +118,9 @@ const MOOD_CONFIG: Record<
     color: 'from-green-400 to-emerald-400',
     bgColor: 'bg-green-500/10',
     animation: '',
-    robotAnimation: 'rotate-0',
-    boyAnimation: 'scale-100',
+    robotPosition: 'translate-y-0 rotate-0',
+    boyPosition: 'translate-y-0 rotate-0',
+    scale: 1,
   },
   calm: {
     label: '平静',
@@ -118,8 +128,9 @@ const MOOD_CONFIG: Record<
     color: 'from-cyan-400 to-blue-400',
     bgColor: 'bg-cyan-500/10',
     animation: '',
-    robotAnimation: 'rotate-0',
-    boyAnimation: 'scale-100',
+    robotPosition: 'translate-y-0 rotate-0',
+    boyPosition: 'translate-y-0 rotate-0',
+    scale: 1,
   },
   dreamy: {
     label: '梦幻',
@@ -127,8 +138,9 @@ const MOOD_CONFIG: Record<
     color: 'from-indigo-400 to-purple-400',
     bgColor: 'bg-indigo-500/10',
     animation: 'animate-pulse',
-    robotAnimation: 'rotate-0',
-    boyAnimation: 'translate-y-[-2px]',
+    robotPosition: 'translate-y-[-8px] rotate-0',
+    boyPosition: 'translate-y-[-8px] rotate-0',
+    scale: 0.9,
   },
   energetic: {
     label: '活力',
@@ -136,8 +148,9 @@ const MOOD_CONFIG: Record<
     color: 'from-orange-400 to-red-400',
     bgColor: 'bg-orange-500/10',
     animation: 'animate-bounce',
-    robotAnimation: 'rotate-180',
-    boyAnimation: 'scale-115',
+    robotPosition: 'translate-y-[-20px] rotate-15',
+    boyPosition: 'translate-y-[-20px] -rotate-15',
+    scale: 1.15,
   },
 };
 
@@ -145,21 +158,31 @@ const MOOD_CONFIG: Record<
 const ALL_MOODS: MoodType[] = Object.keys(MOOD_CONFIG) as MoodType[];
 
 // 缓存键
-const MOOD_CACHE_KEY = 'mood_state';
+const MOOD_CACHE_KEY = 'mood_state_v2';
 const MOOD_CACHE_DURATION = 6 * 60 * 60 * 1000; // 6小时
+const CHARACTERS_CACHE_KEY = 'characters_images';
 
 interface MoodState {
   mood: MoodType;
   timestamp: number;
 }
 
+interface CharactersImage {
+  robotUrl: string;
+  boyUrl: string;
+  timestamp: number;
+}
+
 export function MoodInteraction() {
   const [currentMood, setCurrentMood] = useState<MoodType>('happy');
   const [isInteracting, setIsInteracting] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [characters, setCharacters] = useState<CharactersImage | null>(null);
 
-  // 从缓存加载心情状态
+  // 从缓存加载心情状态和角色图像
   useEffect(() => {
     loadMoodFromCache();
+    loadCharactersFromCache();
   }, []);
 
   // 定时更新心情（每6小时）
@@ -191,6 +214,48 @@ export function MoodInteraction() {
 
     // 如果没有缓存或缓存过期，使用随机心情
     updateMood();
+  };
+
+  // 加载角色图像
+  const loadCharactersFromCache = () => {
+    try {
+      const cached = localStorage.getItem(CHARACTERS_CACHE_KEY);
+      if (cached) {
+        const data: CharactersImage = JSON.parse(cached);
+        setCharacters(data);
+      } else {
+        // 如果没有缓存，生成新的角色图像
+        generateCharacters();
+      }
+    } catch (error) {
+      console.error('加载角色图像缓存失败:', error);
+    }
+  };
+
+  // 生成角色图像
+  const generateCharacters = async () => {
+    if (isGenerating) return;
+
+    try {
+      setIsGenerating(true);
+      const response = await fetch('/api/generate-characters', {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error('生成角色图像失败');
+      }
+
+      const data: CharactersImage = await response.json();
+      setCharacters(data);
+
+      // 保存到缓存
+      localStorage.setItem(CHARACTERS_CACHE_KEY, JSON.stringify(data));
+    } catch (error) {
+      console.error('生成角色图像失败:', error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   // 更新心情
@@ -231,187 +296,159 @@ export function MoodInteraction() {
       {/* 背景装饰 */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
 
-      {/* 标题 */}
-      <div className="text-center mb-3 relative">
-        <motion.div
-          key={currentMood}
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-          className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${moodConfig.bgColor} border border-purple-500/20`}
-        >
-          <span className="text-2xl">{moodConfig.emoji}</span>
-          <span className="text-sm font-medium bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-            {moodConfig.label}
-          </span>
-        </motion.div>
-      </div>
-
-      {/* 角色交互区域 */}
-      <div className="flex items-center justify-center gap-6 py-2">
-        {/* AI 机器人 */}
-        <motion.div
-          key={`robot-${currentMood}`}
-          initial={{ rotate: 0, scale: 0.8 }}
-          animate={{
-            rotate: moodConfig.robotAnimation.includes('rotate')
-              ? parseInt(moodConfig.robotAnimation.replace(/[^-0-9]/g, ''))
-              : 0,
-            scale: 1,
-          }}
-          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-          className="relative w-16 h-16 flex-shrink-0"
-        >
-          {/* 机器人身体 */}
-          <div className="w-full h-full rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg relative overflow-hidden">
-            {/* 眼睛 */}
-            <div className="flex gap-2">
-              <motion.div
-                animate={{
-                  scale: isInteracting ? 1.2 : 1,
-                }}
-                className="w-3 h-3 bg-white rounded-full"
-              />
-              <motion.div
-                animate={{
-                  scale: isInteracting ? 1.2 : 1,
-                }}
-                className="w-3 h-3 bg-white rounded-full"
-              />
-            </div>
-
-            {/* 光晕 */}
-            <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent" />
+      {/* 左右分栏布局 */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* 左侧：角色互动区域 */}
+        <div className="relative min-h-[180px] flex items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-purple-500/5 to-pink-500/5">
+          {/* 背景光晕 */}
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl" />
           </div>
 
-          {/* 天线 */}
+          {/* AI 机器人 */}
+          <motion.div
+            key={`robot-${currentMood}`}
+            animate={{
+              y: moodConfig.robotPosition.includes('translate-y')
+                ? parseInt(moodConfig.robotPosition.match(/translate-y\[([-\d]+)px\]/)?.[1] || '0')
+                : 0,
+              x: moodConfig.robotPosition.includes('translate-x')
+                ? parseInt(moodConfig.robotPosition.match(/translate-x\[([-\d]+)px\]/)?.[1] || '0')
+                : 0,
+              rotate: moodConfig.robotPosition.includes('rotate')
+                ? parseInt(moodConfig.robotPosition.match(/rotate([-\d]+)/)?.[1] || '0')
+                : 0,
+              scale: moodConfig.scale,
+            }}
+            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+            className="relative w-24 h-32 flex-shrink-0 z-10"
+          >
+            {characters?.robotUrl ? (
+              <img
+                src={characters.robotUrl}
+                alt="AI Robot"
+                className="w-full h-full object-contain drop-shadow-2xl"
+              />
+            ) : (
+              // 默认机器人形象
+              <div className="w-full h-full relative">
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                  <span className="text-4xl">🤖</span>
+                </div>
+              </div>
+            )}
+          </motion.div>
+
+          {/* 互动符号 */}
           <motion.div
             animate={{
-              rotate: [-5, 5, -5],
+              opacity: [0.5, 1, 0.5],
+              scale: [0.8, 1.2, 0.8],
             }}
             transition={{
-              duration: 2,
+              duration: 1.5,
               repeat: Infinity,
               ease: 'easeInOut',
             }}
-            className="absolute -top-3 left-1/2 -translate-x-1/2 w-0.5 h-3 bg-purple-400"
+            className="relative z-10 text-3xl mx-2"
           >
-            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+            ✨
           </motion.div>
-        </motion.div>
 
-        {/* 互动符号 */}
-        <motion.div
-          animate={{
-            opacity: [0.5, 1, 0.5],
-            scale: [0.8, 1.2, 0.8],
-          }}
-          transition={{
-            duration: 1.5,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-          className="text-2xl"
-        >
-          ✨
-        </motion.div>
-
-        {/* 皮克斯风格小男孩 */}
-        <motion.div
-          key={`boy-${currentMood}`}
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{
-            scale: moodConfig.boyAnimation.includes('scale')
-              ? parseInt(moodConfig.boyAnimation.replace(/[^0-9]/g, '')) / 100
-              : 1,
-            opacity: 1,
-            x: moodConfig.boyAnimation.includes('translate-x')
-              ? parseInt(moodConfig.boyAnimation.replace(/[^-0-9]/g, ''))
-              : 0,
-            y: moodConfig.boyAnimation.includes('translate-y')
-              ? parseInt(moodConfig.boyAnimation.replace(/[^-0-9]/g, ''))
-              : 0,
-          }}
-          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-          className="relative w-16 h-16 flex-shrink-0"
-        >
-          {/* 头部 */}
-          <div className="w-full h-full rounded-full bg-gradient-to-br from-amber-200 to-orange-300 flex items-center justify-center shadow-lg relative overflow-hidden">
-            {/* 头发 */}
-            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-12 h-8 bg-gradient-to-b from-amber-900 to-amber-800 rounded-t-full" />
-
-            {/* 眼睛 */}
-            <div className="relative z-10 flex gap-3 mt-1">
-              <motion.div
-                animate={{
-                  scale: isInteracting ? 0.8 : 1,
-                }}
-                className="w-3 h-4 bg-gray-800 rounded-full"
+          {/* 皮克斯风格小男孩 */}
+          <motion.div
+            key={`boy-${currentMood}`}
+            animate={{
+              y: moodConfig.boyPosition.includes('translate-y')
+                ? parseInt(moodConfig.boyPosition.match(/translate-y\[([-\d]+)px\]/)?.[1] || '0')
+                : 0,
+              x: moodConfig.boyPosition.includes('translate-x')
+                ? parseInt(moodConfig.boyPosition.match(/translate-x\[([-\d]+)px\]/)?.[1] || '0')
+                : 0,
+              rotate: moodConfig.boyPosition.includes('rotate')
+                ? parseInt(moodConfig.boyPosition.match(/rotate([-\d]+)/)?.[1] || '0')
+                : 0,
+              scale: moodConfig.scale,
+            }}
+            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+            className="relative w-24 h-32 flex-shrink-0 z-10"
+          >
+            {characters?.boyUrl ? (
+              <img
+                src={characters.boyUrl}
+                alt="Boy"
+                className="w-full h-full object-contain drop-shadow-2xl"
               />
-              <motion.div
-                animate={{
-                  scale: isInteracting ? 0.8 : 1,
-                }}
-                className="w-3 h-4 bg-gray-800 rounded-full"
-              />
-            </div>
+            ) : (
+              // 默认小男孩形象
+              <div className="w-full h-full relative">
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-300 to-orange-400 flex items-center justify-center shadow-lg">
+                  <span className="text-4xl">👦</span>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </div>
 
-            {/* 嘴巴 */}
-            <motion.div
-              key={`mouth-${currentMood}`}
-              animate={{
-                d: currentMood === 'happy' || currentMood === 'smiling'
-                  ? 'M 10 14 Q 16 18 22 14'
-                  : currentMood === 'sad'
-                  ? 'M 10 18 Q 16 14 22 18'
-                  : 'M 10 16 L 22 16',
-              }}
-              className="absolute bottom-3 w-8 h-2"
+        {/* 右侧：心情图示区域 */}
+        <div className="flex flex-col items-center justify-center space-y-3">
+          {/* 心情图标 */}
+          <motion.div
+            key={currentMood}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            className={`w-20 h-20 rounded-2xl ${moodConfig.bgColor} border-2 border-purple-500/30 flex items-center justify-center shadow-lg`}
+          >
+            <motion.span
+              className="text-5xl"
+              animate={{ scale: isInteracting ? 1.2 : 1 }}
+              transition={{ duration: 0.2 }}
             >
-              <svg
-                viewBox="0 0 32 24"
-                className="w-full h-full"
-              >
-                <motion.path
-                  d={
-                    currentMood === 'happy' ||
-                    currentMood === 'smiling' ||
-                    currentMood === 'excited'
-                      ? 'M 4 16 Q 16 24 28 16'
-                      : currentMood === 'sad' ||
-                        currentMood === 'anxious' ||
-                        currentMood === 'uneasy'
-                      ? 'M 4 20 Q 16 12 28 20'
-                      : currentMood === 'angry'
-                      ? 'M 4 20 L 28 20'
-                      : 'M 8 16 L 24 16'
-                  }
-                  stroke="#78350f"
-                  strokeWidth="3"
-                  fill="none"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </motion.div>
+              {moodConfig.emoji}
+            </motion.span>
+          </motion.div>
 
-            {/* 腮红 */}
-            <div className="absolute top-1/2 left-2 w-2 h-2 bg-pink-400/60 rounded-full" />
-            <div className="absolute top-1/2 right-2 w-2 h-2 bg-pink-400/60 rounded-full" />
-          </div>
-        </motion.div>
+          {/* 心情标签 */}
+          <motion.div
+            key={`label-${currentMood}`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${moodConfig.bgColor} border border-purple-500/20`}
+          >
+            <span className="text-sm font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              {moodConfig.label}
+            </span>
+          </motion.div>
+
+          {/* 生成角色按钮 */}
+          {!characters && (
+            <motion.button
+              onClick={(e) => {
+                e.stopPropagation();
+                generateCharacters();
+              }}
+              disabled={isGenerating}
+              className={`text-xs px-3 py-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 transition-all duration-300 ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {isGenerating ? '生成中...' : '生成角色形象'}
+            </motion.button>
+          )}
+
+          {/* 提示文字 */}
+          <motion.div
+            animate={{ opacity: isInteracting ? 1 : 0.7 }}
+            className="text-center mt-2"
+          >
+            <p className="text-xs text-purple-300/80">
+              点击切换心情
+            </p>
+          </motion.div>
+        </div>
       </div>
-
-      {/* 提示文字 */}
-      <motion.div
-        animate={{
-          opacity: isInteracting ? 1 : 0.7,
-        }}
-        className="text-center mt-2"
-      >
-        <p className="text-xs text-purple-300/80">
-          点击切换心情 · 每6小时自动更新
-        </p>
-      </motion.div>
     </motion.div>
   );
 }
