@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Navigation } from '@/components/navigation';
-import { Mail, Phone, MapPin, Download, MessageSquare, ExternalLink } from 'lucide-react';
+import { ContactInfoEditor } from '@/components/contact-info-editor';
+import { Mail, Phone, MapPin, Download, MessageSquare, ExternalLink, Edit } from 'lucide-react';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -23,6 +24,102 @@ export default function ContactPage() {
   ]);
   const [guestbookInput, setGuestbookInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 联系信息状态
+  const [contactInfo, setContactInfo] = useState({
+    id: '',
+    email: 'hello@aigccreator.com',
+    phone: '+86 138-8888-8888',
+    location: '中国，北京',
+    resumeKey: null as string | null,
+    resumeFileName: null as string | null,
+    downloadCount: 234,
+    downloadUrl: null as string | null,
+  });
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [loadingContactInfo, setLoadingContactInfo] = useState(false);
+
+  // 加载联系信息
+  useEffect(() => {
+    loadContactInfo();
+  }, []);
+
+  const loadContactInfo = async () => {
+    setLoadingContactInfo(true);
+    try {
+      const response = await fetch('/api/contact/info');
+      if (response.ok) {
+        const data = await response.json();
+        setContactInfo(data);
+      }
+    } catch (error) {
+      console.error('加载联系信息失败:', error);
+    } finally {
+      setLoadingContactInfo(false);
+    }
+  };
+
+  const handleContactInfoSave = async (data: any) => {
+    try {
+      const response = await fetch('/api/contact/info', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        const updatedData = await response.json();
+        setContactInfo(updatedData);
+        alert('联系信息保存成功！');
+      } else {
+        const errorData = await response.json();
+        alert(`保存失败：${errorData.error}`);
+      }
+    } catch (error) {
+      console.error('保存联系信息失败:', error);
+      alert('保存失败，请重试');
+    }
+  };
+
+  const handleResumeDownload = async () => {
+    if (!contactInfo.downloadUrl) {
+      alert('暂无简历文件');
+      return;
+    }
+
+    try {
+      // 使用fetch + blob模式下载文件
+      const response = await fetch(contactInfo.downloadUrl);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = contactInfo.resumeFileName || 'resume';
+      link.click();
+      window.URL.revokeObjectURL(blobUrl);
+
+      // 更新下载次数
+      await fetch('/api/contact/info', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: contactInfo.id,
+          email: contactInfo.email,
+          phone: contactInfo.phone,
+          location: contactInfo.location,
+          resumeKey: contactInfo.resumeKey,
+          resumeFileName: contactInfo.resumeFileName,
+        }),
+      });
+    } catch (error) {
+      console.error('下载简历失败:', error);
+      alert('下载失败，请重试');
+    }
+  };
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,12 +146,6 @@ export default function ContactPage() {
 
     setGuestbookMessages([newMessage, ...guestbookMessages]);
     setGuestbookInput('');
-  };
-
-  const downloadResume = () => {
-    // 模拟简历下载
-    alert('简历下载已开始！（生产环境中会下载 PDF 文件）');
-    // 在生产环境中，这将跟踪分析并下载实际文件
   };
 
   return (
@@ -160,38 +251,49 @@ export default function ContactPage() {
               </CardHeader>
               <CardContent className="p-6">
                 <p className="text-muted-foreground mb-4">
-                  下载我的完整简历，了解更多关于我的经验和技能。
+                  {contactInfo.resumeFileName
+                    ? `当前简历：${contactInfo.resumeFileName}`
+                    : '暂无简历文件'}
                 </p>
                 <Button
-                  onClick={downloadResume}
+                  onClick={handleResumeDownload}
                   className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  disabled={!contactInfo.downloadUrl}
                 >
                   <Download className="w-4 h-4 mr-2" />
                   下载简历
                 </Button>
                 <p className="text-xs text-muted-foreground mt-2 text-center">
-                  234 次下载
+                  {contactInfo.downloadCount} 次下载
                 </p>
               </CardContent>
             </Card>
 
             {/* Contact Info */}
             <Card>
-              <CardHeader className="!flex !flex-row !items-center !justify-center !min-h-[64px] !px-6">
+              <CardHeader className="!flex !flex-row !items-center !justify-between !min-h-[64px] !px-6">
                 <CardTitle>联系信息</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setEditorOpen(true)}
+                  disabled={loadingContactInfo}
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Mail className="w-5 h-5 text-green-400" />
-                  <span>hello@aigccreator.com</span>
+                  <span>{contactInfo.email}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Phone className="w-5 h-5 text-blue-400" />
-                  <span>+86 138-8888-8888</span>
+                  <span>{contactInfo.phone}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <MapPin className="w-5 h-5 text-purple-400" />
-                  <span>中国，北京</span>
+                  <span>{contactInfo.location}</span>
                 </div>
               </CardContent>
             </Card>
@@ -279,6 +381,14 @@ export default function ContactPage() {
           </Card>
         </motion.div>
       </main>
+
+      {/* 联系信息编辑弹窗 */}
+      <ContactInfoEditor
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        initialData={contactInfo}
+        onSave={handleContactInfoSave}
+      />
     </div>
   );
 }

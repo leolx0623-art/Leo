@@ -3,6 +3,29 @@ import { sql } from "drizzle-orm"
 import { createSchemaFactory } from "drizzle-zod"
 import { z } from "zod"
 
+// 联系信息表
+export const contactInfo = pgTable(
+  "contact_info",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    email: varchar("email", { length: 255 }).notNull(),
+    phone: varchar("phone", { length: 50 }).notNull(),
+    location: varchar("location", { length: 255 }).notNull(),
+    resumeKey: text("resume_key"),
+    resumeFileName: text("resume_file_name"),
+    downloadCount: integer("download_count").default(0).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }),
+  },
+  (table) => ({
+    idIdx: index("contact_info_id_idx").on(table.id),
+  })
+)
+
 // 作品集表
 export const portfolios = pgTable(
   "portfolios",
@@ -35,6 +58,23 @@ const { createInsertSchema: createCoercedInsertSchema } = createSchemaFactory({
 })
 
 // Zod schemas for validation
+export const insertContactInfoSchema = createCoercedInsertSchema(contactInfo).omit({
+  id: true,
+  downloadCount: true,
+  createdAt: true,
+  updatedAt: true,
+})
+
+export const updateContactInfoSchema = createCoercedInsertSchema(contactInfo)
+  .pick({
+    email: true,
+    phone: true,
+    location: true,
+    resumeKey: true,
+    resumeFileName: true,
+  })
+  .partial()
+
 export const insertPortfolioSchema = createCoercedInsertSchema(portfolios).pick({
   title: true,
   description: true,
@@ -56,6 +96,9 @@ export const updatePortfolioSchema = createCoercedInsertSchema(portfolios)
   .partial()
 
 // TypeScript types
+export type ContactInfo = typeof contactInfo.$inferSelect
+export type InsertContactInfo = z.infer<typeof insertContactInfoSchema>
+export type UpdateContactInfo = z.infer<typeof updateContactInfoSchema>
 export type Portfolio = typeof portfolios.$inferSelect
 export type InsertPortfolio = z.infer<typeof insertPortfolioSchema>
 export type UpdatePortfolio = z.infer<typeof updatePortfolioSchema>
