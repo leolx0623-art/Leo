@@ -296,52 +296,37 @@ export function MoodInteraction() {
       {/* 背景装饰 */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
 
-      {/* 左右分栏布局 */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* 左侧：角色互动区域 */}
-        <div className="relative min-h-[200px] flex items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-purple-500/5 to-pink-500/5">
+      {/* 布局改为垂直排列 */}
+      <div className="flex flex-col gap-4">
+        {/* 角色展示区域 */}
+        <div className="relative h-[180px] flex items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-purple-500/5 to-pink-500/5">
           {/* 背景光晕 */}
           <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl" />
           </div>
 
-          {/* AIGC创作者 */}
+          {/* 男孩角色 */}
           <motion.div
-            key={`creator-${currentMood}`}
+            key={`boy-${currentMood}`}
             animate={{
               y: moodConfig.creatorPosition.includes('translate-y')
                 ? parseInt(moodConfig.creatorPosition.match(/translate-y\[([-\d]+)px\]/)?.[1] || '0')
                 : 0,
-              x: moodConfig.creatorPosition.includes('translate-x')
-                ? parseInt(moodConfig.creatorPosition.match(/translate-x\[([-\d]+)px\]/)?.[1] || '0')
-                : 0,
-              rotate: moodConfig.creatorPosition.includes('rotate')
-                ? parseInt(moodConfig.creatorPosition.match(/rotate([-\d]+)/)?.[1] || '0')
-                : 0,
               scale: moodConfig.scale,
             }}
             transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            className="relative w-28 h-36 flex-shrink-0 z-10"
+            className="relative w-48 h-full flex-shrink-0 z-10"
           >
-            {characters?.creatorUrl ? (
-              <div className="relative w-full h-full flex items-end justify-center">
-                <img
-                  src={characters.creatorUrl}
-                  alt="Creator"
-                  className="w-full h-full object-contain"
-                  style={{
-                    filter: 'drop-shadow(0 8px 25px rgba(239, 68, 68, 0.5))',
-                  }}
-                />
-              </div>
-            ) : (
-              // 默认创作者形象
-              <div className="w-full h-full relative">
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center shadow-lg">
-                  <span className="text-4xl">👨‍💻</span>
-                </div>
-              </div>
-            )}
+            <div className="relative w-full h-full flex items-end justify-center pb-2">
+              <img
+                src="/boy-character-3d.png"
+                alt="男孩角色"
+                className="w-full h-full object-contain mix-blend-multiply"
+                style={{
+                  filter: 'drop-shadow(0 10px 30px rgba(239, 68, 68, 0.6))',
+                }}
+              />
+            </div>
           </motion.div>
 
           {/* 互动符号 */}
@@ -355,48 +340,9 @@ export function MoodInteraction() {
               repeat: Infinity,
               ease: 'easeInOut',
             }}
-            className="relative z-10 text-3xl mx-2"
+            className="absolute right-4 top-4 z-10 text-2xl"
           >
             ✨
-          </motion.div>
-
-          {/* AI助手 */}
-          <motion.div
-            key={`assistant-${currentMood}`}
-            animate={{
-              y: moodConfig.assistantPosition.includes('translate-y')
-                ? parseInt(moodConfig.assistantPosition.match(/translate-y\[([-\d]+)px\]/)?.[1] || '0')
-                : 0,
-              x: moodConfig.assistantPosition.includes('translate-x')
-                ? parseInt(moodConfig.assistantPosition.match(/translate-x\[([-\d]+)px\]/)?.[1] || '0')
-                : 0,
-              rotate: moodConfig.assistantPosition.includes('rotate')
-                ? parseInt(moodConfig.assistantPosition.match(/rotate([-\d]+)/)?.[1] || '0')
-                : 0,
-              scale: moodConfig.scale,
-            }}
-            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            className="relative w-28 h-36 flex-shrink-0 z-10"
-          >
-            {characters?.assistantUrl ? (
-              <div className="relative w-full h-full flex items-end justify-center">
-                <img
-                  src={characters.assistantUrl}
-                  alt="AI Assistant"
-                  className="w-full h-full object-contain"
-                  style={{
-                    filter: 'drop-shadow(0 8px 25px rgba(139, 92, 246, 0.5))',
-                  }}
-                />
-              </div>
-            ) : (
-              // 默认AI助手形象
-              <div className="w-full h-full relative">
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center shadow-lg">
-                  <span className="text-4xl">🤖</span>
-                </div>
-              </div>
-            )}
           </motion.div>
         </div>
 
@@ -457,6 +403,39 @@ export function MoodInteraction() {
             <p className="text-xs text-purple-300/80">
               点击切换心情
             </p>
+          </motion.div>
+        </div>
+
+        {/* 底部：心情图示区域 */}
+        <div className="flex items-center justify-center gap-4 py-2">
+          {/* 心情图标 */}
+          <motion.div
+            key={currentMood}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            className={`w-16 h-16 rounded-xl ${moodConfig.bgColor} border-2 border-purple-500/30 flex items-center justify-center shadow-lg`}
+          >
+            <motion.span
+              className="text-4xl"
+              animate={{ scale: isInteracting ? 1.2 : 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              {moodConfig.emoji}
+            </motion.span>
+          </motion.div>
+
+          {/* 心情标签 */}
+          <motion.div
+            key={`label-${currentMood}`}
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className={`flex-1 text-center`}
+          >
+            <span className="text-lg font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              {moodConfig.label}
+            </span>
           </motion.div>
         </div>
       </div>
