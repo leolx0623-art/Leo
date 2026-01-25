@@ -9,6 +9,7 @@ import { Navigation } from '@/components/navigation';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { ProfileEditor } from '@/components/profile-editor';
 import { ScrollIndicator } from '@/components/scroll-indicator';
+import { AIStatusCard } from '@/components/AIStatusCard';
 import { ArrowRight, Sparkles, Bot, Play, Link2, Film, Image as ImageIcon, Music, Package, Mail, MapPin, Phone, Github, Twitter, Linkedin, Award, Code, Palette, Video, Zap, Edit } from 'lucide-react';
 import Link from 'next/link';
 
@@ -429,6 +430,11 @@ export default function Home() {
                     <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
                   </Link>
                 </Button>
+
+                {/* AI 状态卡片 */}
+                <div className="mt-4">
+                  <AIStatusCard />
+                </div>
               </CardContent>
             </Card>
 
