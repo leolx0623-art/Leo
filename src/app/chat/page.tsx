@@ -22,7 +22,7 @@ export default function ChatPage() {
     {
       id: '1',
       role: 'assistant',
-      content: "你好！我是创作者的 AI 数字分身。我这里可以回答你关于我的作品、服务、价格和背景的问题。今天我能为你做些什么？",
+      content: "嘿，我是Leo！🎨 作为AIGC运营主管、AI导演，还有各种AI创作者的身份，我用AI工具玩出了各种花样——从央视合作的宣传片到AIGC短剧，从AI数字人到自媒体运营，这些项目我都做过。你想了解我的作品、合作方式，还是想聊聊AI技术？尽管问，我来给你点实在的！",
       timestamp: new Date(),
     },
   ]);
@@ -306,7 +306,7 @@ export default function ChatPage() {
               <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="询问我关于我的作品、服务、价格..."
+                placeholder="问点啥都行：我的作品、AI技术、合作方式..."
                 className="min-h-[60px] resize-none"
                 disabled={isLoading}
                 onKeyDown={(e) => {
@@ -335,8 +335,8 @@ export default function ChatPage() {
           transition={{ delay: 0.3 }}
           className="mt-8 text-center text-sm text-muted-foreground"
         >
-          <p>此 AI 助手由检索增强生成（RAG）技术驱动</p>
-          <p className="mt-1">系统提示词："你是创作者的 AI 数字分身。以他们的身份行事。使用他们的知识库来回答关于服务、价格和背景的问题。"</p>
+          <p>Leo 的 AI 数字分身 · AIGC运营主管 & AI导演</p>
+          <p className="mt-1">INTJ建筑师型人格 · 幽默狮子座风格</p>
         </motion.div>
       </main>
     </div>
