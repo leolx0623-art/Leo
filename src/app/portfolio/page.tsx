@@ -1,51 +1,172 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Navigation } from '@/components/navigation';
+import { Plus, Edit2, Trash2, Upload, X, Play, ExternalLink } from 'lucide-react';
 
-const categories = ['视觉', '视频', '音频', '写作'];
-
-const portfolioItems = {
-  视觉: [
-    { id: 1, title: '霓虹梦境', tool: 'Midjourney', image: '🎨', description: '未来主义城市景观，霓虹灯光闪烁' },
-    { id: 2, title: '赛博肖像', tool: 'Stable Diffusion', image: '👤', description: '具有赛博朋克美学的数字肖像' },
-    { id: 3, title: '抽象 AI', tool: 'Midjourney', image: '🌌', description: 'AI 意识的抽象表现' },
-    { id: 4, title: '自然重现', tool: 'DALL-E 3', image: '🌿', description: '自然与科技的融合' },
-  ],
-  视频: [
-    { id: 5, title: '动态循环', tool: 'Runway ML', image: '🎬', description: '无限循环动画' },
-    { id: 6, title: 'AI 动画', tool: 'Pika Labs', image: '✨', description: 'AI 生成的角色动画' },
-  ],
-  音频: [
-    { id: 7, title: '合成波音轨', tool: 'Suno AI', image: '🎵', description: '电子音乐作品' },
-    { id: 8, title: '环境音效', tool: 'Udio', image: '🎶', description: '舒缓的环境音乐' },
-  ],
-  写作: [
-    { id: 9, title: '提示工程', tool: 'GPT-4', image: '📝', description: '高级提示词集合' },
-    { id: 10, title: 'AI 故事', tool: 'Claude', image: '📖', description: 'AI 生成的短篇小说' },
-  ],
-};
+interface Portfolio {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  websiteUrl?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
 
 export default function PortfolioPage() {
-  const [selectedCategory, setSelectedCategory] = useState('Visuals');
-  const [selectedTool, setSelectedTool] = useState<string | null>(null);
+  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingPortfolio, setEditingPortfolio] = useState<Portfolio | null>(null);
+  const [uploading, setUploading] = useState(false);
 
-  const currentItems = portfolioItems[selectedCategory as keyof typeof portfolioItems] || [];
-  const tools = [...new Set(currentItems.map(item => item.tool))];
+  // 表单状态
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    imageUrl: '',
+    videoUrl: '',
+    websiteUrl: '',
+  });
 
-  const filteredItems = selectedTool
-    ? currentItems.filter(item => item.tool === selectedTool)
-    : currentItems;
+  // 加载作品集
+  useEffect(() => {
+    fetchPortfolios();
+  }, []);
+
+  const fetchPortfolios = async () => {
+    try {
+      const response = await fetch('/api/portfolios');
+      const data = await response.json();
+      setPortfolios(data);
+    } catch (error) {
+      console.error('获取作品集失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 打开添加对话框
+  const handleAdd = () => {
+    setEditingPortfolio(null);
+    setFormData({
+      title: '',
+      description: '',
+      imageUrl: '',
+      videoUrl: '',
+      websiteUrl: '',
+    });
+    setDialogOpen(true);
+  };
+
+  // 打开编辑对话框
+  const handleEdit = (portfolio: Portfolio) => {
+    setEditingPortfolio(portfolio);
+    setFormData({
+      title: portfolio.title,
+      description: portfolio.description,
+      imageUrl: portfolio.imageUrl || '',
+      videoUrl: portfolio.videoUrl || '',
+      websiteUrl: portfolio.websiteUrl || '',
+    });
+    setDialogOpen(true);
+  };
+
+  // 上传文件
+  const handleUpload = async (file: File, type: 'image' | 'video') => {
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (type === 'image') {
+        setFormData({ ...formData, imageUrl: data.key });
+      } else {
+        setFormData({ ...formData, videoUrl: data.key });
+      }
+    } catch (error) {
+      console.error('上传失败:', error);
+      alert('上传失败，请重试');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // 保存作品集
+  const handleSave = async () => {
+    try {
+      const url = editingPortfolio
+        ? `/api/portfolios/${editingPortfolio.id}`
+        : '/api/portfolios';
+
+      const response = await fetch(url, {
+        method: editingPortfolio ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        await fetchPortfolios();
+        setDialogOpen(false);
+      } else {
+        alert('保存失败，请重试');
+      }
+    } catch (error) {
+      console.error('保存失败:', error);
+      alert('保存失败，请重试');
+    }
+  };
+
+  // 删除作品集
+  const handleDelete = async (id: string) => {
+    if (!confirm('确定要删除这个作品集吗？')) return;
+
+    try {
+      const response = await fetch(`/api/portfolios/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        await fetchPortfolios();
+      } else {
+        alert('删除失败，请重试');
+      }
+    } catch (error) {
+      console.error('删除失败:', error);
+      alert('删除失败，请重试');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-purple-950/20">
       <Navigation />
-      
+
       <main className="container mx-auto px-4 pt-24 pb-16">
         {/* Header */}
         <motion.div
@@ -58,89 +179,241 @@ export default function PortfolioPage() {
             创意作品集
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            探索我的 AI 生成艺术、视频、音频和写作作品集
+            探索我的 AI 生成艺术、视频和创意作品
           </p>
         </motion.div>
 
-        {/* Category Tabs */}
-        <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="mb-8">
-          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4">
-            {categories.map((category) => (
-              <TabsTrigger key={category} value={category} className="relative">
-                {category}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+        {/* 添加按钮 */}
+        <div className="flex justify-center mb-8">
+          <Button
+            onClick={handleAdd}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+          >
+            <Plus className="mr-2 h-5 w-5" />
+            添加作品集
+          </Button>
+        </div>
 
-          {categories.map((category) => (
-            <TabsContent key={category} value={category}>
-              {/* Tool Filters */}
-              <div className="flex flex-wrap gap-2 justify-center mb-8">
-                <Button
-                  variant={selectedTool === null ? 'default' : 'outline'}
-                  onClick={() => setSelectedTool(null)}
-                  className="rounded-full"
-                >
-                  所有工具
-                </Button>
-                {tools.map((tool) => (
-                  <Button
-                    key={tool}
-                    variant={selectedTool === tool ? 'default' : 'outline'}
-                    onClick={() => setSelectedTool(tool)}
-                    className="rounded-full"
-                  >
-                    {tool}
-                  </Button>
-                ))}
+        {/* 加载状态 */}
+        {loading && (
+          <div className="text-center py-20 text-muted-foreground">
+            加载中...
+          </div>
+        )}
+
+        {/* 作品集列表 */}
+        {!loading && portfolios.length === 0 && (
+          <div className="text-center py-20 text-muted-foreground">
+            还没有作品集，点击上方按钮添加第一个作品
+          </div>
+        )}
+
+        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <AnimatePresence mode="popLayout">
+            {portfolios.map((portfolio) => (
+              <motion.div
+                key={portfolio.id}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card className="overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 group">
+                  {/* 媒体内容 */}
+                  <div className="relative aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
+                    {portfolio.imageUrl && (
+                      <img
+                        src={portfolio.imageUrl}
+                        alt={portfolio.title}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                    {portfolio.videoUrl && !portfolio.imageUrl && (
+                      <div className="flex flex-col items-center justify-center gap-4">
+                        <Play className="w-16 h-16 text-white/80" />
+                        <span className="text-white/80">视频作品</span>
+                      </div>
+                    )}
+                    {!portfolio.imageUrl && !portfolio.videoUrl && (
+                      <div className="text-8xl">🎨</div>
+                    )}
+
+                    {/* 操作按钮 */}
+                    <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        onClick={() => handleEdit(portfolio)}
+                        className="h-8 w-8 bg-black/50 hover:bg-black/70"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        onClick={() => handleDelete(portfolio.id)}
+                        className="h-8 w-8 bg-black/50 hover:bg-red-600"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-bold mb-2">{portfolio.title}</h3>
+                    <p className="text-muted-foreground mb-4 line-clamp-2">{portfolio.description}</p>
+
+                    <div className="flex flex-wrap gap-2">
+                      {portfolio.websiteUrl && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(portfolio.websiteUrl, '_blank')}
+                          className="flex items-center gap-2"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          查看网站
+                        </Button>
+                      )}
+                      {portfolio.videoUrl && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(portfolio.videoUrl, '_blank')}
+                          className="flex items-center gap-2"
+                        >
+                          <Play className="h-4 w-4" />
+                          播放视频
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* 编辑对话框 */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {editingPortfolio ? '编辑作品集' : '添加作品集'}
+              </DialogTitle>
+              <DialogDescription>
+                {editingPortfolio ? '编辑您的作品集信息' : '创建一个新的作品集'}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="title">标题 *</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="输入作品标题"
+                />
               </div>
 
-              {/* Grid */}
-              <motion.div
-                layout
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              >
-                <AnimatePresence mode="popLayout">
-                  {filteredItems.map((item) => (
-                    <motion.div
-                      key={item.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Card className="overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 group cursor-pointer">
-                        <div className="aspect-square bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center text-8xl group-hover:scale-110 transition-transform duration-500">
-                          {item.image}
-                        </div>
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between mb-2">
-                            <h3 className="text-xl font-bold">{item.title}</h3>
-                            <Badge variant="secondary" className="ml-2">
-                              {item.tool}
-                            </Badge>
-                          </div>
-                          <p className="text-muted-foreground">{item.description}</p>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </motion.div>
+              <div>
+                <Label htmlFor="description">描述 *</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="描述您的作品"
+                  rows={3}
+                />
+              </div>
 
-              {filteredItems.length === 0 && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-center py-20 text-muted-foreground"
-                >
-                  没有找到符合该筛选的作品
-                </motion.div>
-              )}
-            </TabsContent>
-          ))}
-        </Tabs>
+              <div>
+                <Label>图片</Label>
+                <div className="space-y-2">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleUpload(file, 'image');
+                    }}
+                    disabled={uploading}
+                  />
+                  {formData.imageUrl && (
+                    <div className="relative">
+                      <img
+                        src={formData.imageUrl}
+                        alt="预览"
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        className="absolute top-2 right-2"
+                        onClick={() => setFormData({ ...formData, imageUrl: '' })}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Label>视频</Label>
+                <div className="space-y-2">
+                  <Input
+                    type="file"
+                    accept="video/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleUpload(file, 'video');
+                    }}
+                    disabled={uploading}
+                  />
+                  {formData.videoUrl && (
+                    <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                      <Play className="h-4 w-4" />
+                      <span className="text-sm flex-1 truncate">视频已上传</span>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setFormData({ ...formData, videoUrl: '' })}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="website">网站链接</Label>
+                <Input
+                  id="website"
+                  value={formData.websiteUrl}
+                  onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
+                  placeholder="https://example.com"
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                取消
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={!formData.title || !formData.description || uploading}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+              >
+                {uploading ? '上传中...' : '保存'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
