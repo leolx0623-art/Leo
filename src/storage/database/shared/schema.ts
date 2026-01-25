@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, varchar, index } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, varchar, integer, index } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 import { createSchemaFactory } from "drizzle-zod"
 import { z } from "zod"
@@ -13,6 +13,7 @@ export const portfolios = pgTable(
     title: varchar("title", { length: 255 }).notNull(),
     description: text("description").notNull(),
     category: varchar("category", { length: 50 }).notNull().default("other"),
+    sortOrder: integer("sort_order").notNull().default(0),
     imageUrl: text("image_url"),
     videoUrl: text("video_url"),
     websiteUrl: text("website_url"),
@@ -24,6 +25,7 @@ export const portfolios = pgTable(
   (table) => ({
     createdAtIdx: index("portfolios_created_at_idx").on(table.createdAt),
     categoryIdx: index("portfolios_category_idx").on(table.category),
+    sortOrderIdx: index("portfolios_sort_order_idx").on(table.sortOrder),
   })
 )
 

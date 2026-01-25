@@ -3,6 +3,23 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,7 +35,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Navigation } from '@/components/navigation';
-import { Plus, Edit2, Trash2, Upload, X, Play, ExternalLink, Link2, Filter } from 'lucide-react';
+import { Plus, Edit2, Trash2, Upload, X, Play, ExternalLink, Link2, Filter, GripVertical } from 'lucide-react';
 
 // 分类常量
 const CATEGORIES = [
@@ -42,6 +59,149 @@ interface Portfolio {
   updatedAt?: string;
 }
 
+// 可拖拽的作品卡片组件
+function SortablePortfolioCard({
+  portfolio,
+  onEdit,
+  onDelete,
+}: {
+  portfolio: Portfolio;
+  onEdit: (portfolio: Portfolio) => void;
+  onDelete: (id: string) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: portfolio.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Card className="overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 group">
+        {/* 媒体内容预览 */}
+        <div className="relative aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center overflow-hidden">
+          {/* 拖拽手柄 */}
+          <div
+            {...attributes}
+            {...listeners}
+            className="absolute top-2 left-2 z-10 p-2 bg-black/50 rounded-md cursor-grab hover:bg-black/70 transition-colors"
+          >
+            <GripVertical className="w-5 h-5 text-white" />
+          </div>
+
+          {/* 优先级1: 图片预览 */}
+          {portfolio.imageUrl && (
+            <img
+              src={portfolio.imageUrl}
+              alt={portfolio.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          )}
+
+          {/* 优先级2: 视频预览 */}
+          {!portfolio.imageUrl && portfolio.videoUrl && (
+            <video
+              src={portfolio.videoUrl}
+              className="w-full h-full object-cover"
+              muted
+              preload="metadata"
+            />
+          )}
+
+          {/* 优先级3: 网站预览 */}
+          {!portfolio.imageUrl && !portfolio.videoUrl && portfolio.websiteUrl && (
+            <div className="w-full h-full p-6 flex flex-col items-center justify-center bg-gradient-to-br from-blue-900/40 to-purple-900/40">
+              <Link2 className="w-16 h-16 text-white/80 mb-3" />
+              <p className="text-white/90 text-sm font-medium text-center line-clamp-2">
+                {portfolio.title}
+              </p>
+              <p className="text-white/60 text-xs mt-2 truncate max-w-full">
+                {portfolio.websiteUrl.replace(/^https?:\/\//, '')}
+              </p>
+            </div>
+          )}
+
+          {/* 优先级4: 默认图案 */}
+          {!portfolio.imageUrl && !portfolio.videoUrl && !portfolio.websiteUrl && (
+            <div className="flex flex-col items-center justify-center gap-4">
+              <div className="text-8xl animate-pulse">🎨</div>
+              <span className="text-white/80 text-lg">创意作品</span>
+            </div>
+          )}
+
+          {/* 视频播放按钮遮罩 */}
+          {!portfolio.imageUrl && portfolio.videoUrl && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/20 transition-colors">
+              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Play className="w-8 h-8 text-white ml-1" />
+              </div>
+            </div>
+          )}
+
+          {/* 操作按钮 */}
+          <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              size="icon"
+              variant="secondary"
+              onClick={() => onEdit(portfolio)}
+              className="h-8 w-8 bg-black/50 hover:bg-black/70"
+            >
+              <Edit2 className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="secondary"
+              onClick={() => onDelete(portfolio.id)}
+              className="h-8 w-8 bg-black/50 hover:bg-red-600"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <CardContent className="p-6">
+          <h3 className="text-xl font-bold mb-2">{portfolio.title}</h3>
+          <p className="text-muted-foreground mb-4 line-clamp-2">{portfolio.description}</p>
+
+          <div className="flex flex-wrap gap-2">
+            {portfolio.websiteUrl && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => window.open(portfolio.websiteUrl, '_blank')}
+                className="flex items-center gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                查看网站
+              </Button>
+            )}
+            {portfolio.videoUrl && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => window.open(portfolio.videoUrl, '_blank')}
+                className="flex items-center gap-2"
+              >
+                <Play className="h-4 w-4" />
+                播放视频
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function PortfolioPage() {
   const searchParams = useSearchParams();
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
@@ -52,6 +212,45 @@ export default function PortfolioPage() {
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get('category') || 'all'
   );
+
+  // 配置拖拽传感器
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // 拖拽结束处理
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = portfolios.findIndex((p) => p.id === active.id);
+      const newIndex = portfolios.findIndex((p) => p.id === over.id);
+
+      const newPortfolios = arrayMove(portfolios, oldIndex, newIndex);
+      setPortfolios(newPortfolios);
+
+      // 更新服务器端排序
+      try {
+        const updates = newPortfolios.map((portfolio, index) => ({
+          id: portfolio.id,
+          sortOrder: index,
+        }));
+
+        await fetch('/api/portfolios/reorder', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updates),
+        });
+      } catch (error) {
+        console.error('更新排序失败:', error);
+      }
+    }
+  };
 
   // 表单状态
   const [formData, setFormData] = useState({
@@ -253,124 +452,29 @@ export default function PortfolioPage() {
           </div>
         )}
 
-        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence mode="popLayout">
-            {portfolios.map((portfolio) => (
-              <motion.div
-                key={portfolio.id}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card className="overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 group">
-                  {/* 媒体内容预览 */}
-                  <div className="relative aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center overflow-hidden">
-                    {/* 优先级1: 图片预览 */}
-                    {portfolio.imageUrl && (
-                      <img
-                        src={portfolio.imageUrl}
-                        alt={portfolio.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    )}
-
-                    {/* 优先级2: 视频预览 */}
-                    {!portfolio.imageUrl && portfolio.videoUrl && (
-                      <video
-                        src={portfolio.videoUrl}
-                        className="w-full h-full object-cover"
-                        muted
-                        preload="metadata"
-                      />
-                    )}
-
-                    {/* 优先级3: 网站预览 */}
-                    {!portfolio.imageUrl && !portfolio.videoUrl && portfolio.websiteUrl && (
-                      <div className="w-full h-full p-6 flex flex-col items-center justify-center bg-gradient-to-br from-blue-900/40 to-purple-900/40">
-                        <Link2 className="w-16 h-16 text-white/80 mb-3" />
-                        <p className="text-white/90 text-sm font-medium text-center line-clamp-2">
-                          {portfolio.title}
-                        </p>
-                        <p className="text-white/60 text-xs mt-2 truncate max-w-full">
-                          {portfolio.websiteUrl.replace(/^https?:\/\//, '')}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* 优先级4: 默认图案 */}
-                    {!portfolio.imageUrl && !portfolio.videoUrl && !portfolio.websiteUrl && (
-                      <div className="flex flex-col items-center justify-center gap-4">
-                        <div className="text-8xl animate-pulse">🎨</div>
-                        <span className="text-white/80 text-lg">创意作品</span>
-                      </div>
-                    )}
-
-                    {/* 视频播放按钮遮罩 */}
-                    {!portfolio.imageUrl && portfolio.videoUrl && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/20 transition-colors">
-                        <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
-                          <Play className="w-8 h-8 text-white ml-1" />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 操作按钮 */}
-                    <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        onClick={() => handleEdit(portfolio)}
-                        className="h-8 w-8 bg-black/50 hover:bg-black/70"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        onClick={() => handleDelete(portfolio.id)}
-                        className="h-8 w-8 bg-black/50 hover:bg-red-600"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-bold mb-2">{portfolio.title}</h3>
-                    <p className="text-muted-foreground mb-4 line-clamp-2">{portfolio.description}</p>
-
-                    <div className="flex flex-wrap gap-2">
-                      {portfolio.websiteUrl && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => window.open(portfolio.websiteUrl, '_blank')}
-                          className="flex items-center gap-2"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                          查看网站
-                        </Button>
-                      )}
-                      {portfolio.videoUrl && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => window.open(portfolio.videoUrl, '_blank')}
-                          className="flex items-center gap-2"
-                        >
-                          <Play className="h-4 w-4" />
-                          播放视频
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
+        {!loading && portfolios.length > 0 && (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={portfolios.map(p => p.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {portfolios.map((portfolio) => (
+                  <SortablePortfolioCard
+                    key={portfolio.id}
+                    portfolio={portfolio}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
 
         {/* 编辑对话框 */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

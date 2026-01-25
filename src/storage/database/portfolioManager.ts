@@ -1,4 +1,4 @@
-import { eq, desc, SQL } from "drizzle-orm"
+import { eq, desc, asc, SQL } from "drizzle-orm"
 import { getDb } from "coze-coding-dev-sdk"
 import {
   portfolios,
@@ -22,9 +22,9 @@ export class PortfolioManager {
         .select()
         .from(portfolios)
         .where(eq(portfolios.category, category))
-        .orderBy(desc(portfolios.createdAt))
+        .orderBy(asc(portfolios.sortOrder), desc(portfolios.createdAt))
     }
-    return db.select().from(portfolios).orderBy(desc(portfolios.createdAt))
+    return db.select().from(portfolios).orderBy(asc(portfolios.sortOrder), desc(portfolios.createdAt))
   }
 
   async getPortfolioById(id: string): Promise<Portfolio | null> {
@@ -54,6 +54,16 @@ export class PortfolioManager {
     const db = await getDb()
     const result = await db.delete(portfolios).where(eq(portfolios.id, id))
     return (result.rowCount ?? 0) > 0
+  }
+
+  async updatePortfoliosOrder(updates: Array<{ id: string; sortOrder: number }>): Promise<void> {
+    const db = await getDb()
+    for (const update of updates) {
+      await db
+        .update(portfolios)
+        .set({ sortOrder: update.sortOrder, updatedAt: new Date() })
+        .where(eq(portfolios.id, update.id))
+    }
   }
 }
 
