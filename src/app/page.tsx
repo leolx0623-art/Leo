@@ -231,17 +231,6 @@ export default function Home() {
             </div>
           </motion.div>
         </div>
-
-        {/* Scroll Indicator */}
-        <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <div className="w-6 h-10 border-2 border-purple-500/50 rounded-full flex items-start justify-center p-2">
-            <div className="w-1.5 h-3 bg-purple-500 rounded-full animate-pulse" />
-          </div>
-        </motion.div>
       </motion.div>
 
       {/* Personal Profile Card Section */}
@@ -703,6 +692,24 @@ export default function Home() {
         {/* 滚动指示器 */}
         <ScrollIndicator color="green" />
       </section>
+
+      {/* Back to Top Button */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2 }}
+        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30"
+      >
+        <Button
+          size="lg"
+          variant="outline"
+          className="border-purple-500/30 hover:bg-purple-500/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 gap-2"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        >
+          回到顶部
+          <ArrowRight className="w-4 h-4 rotate-[-90deg]" />
+        </Button>
+      </motion.div>
 
       {/* AI Greeting Floating Widget */}
       <motion.div
