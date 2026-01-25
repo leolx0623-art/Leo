@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Navigation } from '@/components/navigation';
 import { PortfolioCard, PortfolioCardData } from '@/components/portfolio-card';
-import { Send, Sparkles, Bot, User } from 'lucide-react';
+import { Send, Sparkles, User } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -165,7 +165,7 @@ export default function ChatPage() {
           className="text-center mb-8"
         >
           <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-            AI 数字分身
+            Leo的AI数字分身
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto flex items-center justify-center gap-2">
             <Sparkles className="w-5 h-5" />
@@ -175,13 +175,6 @@ export default function ChatPage() {
 
         {/* Chat Container */}
         <Card className="border-purple-500/20 shadow-2xl shadow-purple-500/10">
-          <CardHeader className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-b">
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="w-6 h-6 text-purple-400" />
-              数字分身交流
-            </CardTitle>
-          </CardHeader>
-          
           <CardContent className="p-6">
             {/* Messages Area */}
             <div className="h-[60vh] overflow-y-auto mb-6 space-y-4 pr-2">
@@ -204,7 +197,7 @@ export default function ChatPage() {
                         {message.role === 'user' ? (
                           <User className="w-5 h-5 text-white" />
                         ) : (
-                          <Bot className="w-5 h-5 text-white" />
+                          <span className="text-2xl">👦🏻</span>
                         )}
                       </div>
                       <div className={`rounded-2xl px-4 py-3 ${
@@ -244,13 +237,48 @@ export default function ChatPage() {
                 >
                   <div className="flex gap-3">
                     <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-500">
-                      <Bot className="w-5 h-5 text-white" />
+                      <span className="text-2xl">👦🏻</span>
                     </div>
                     <div className="rounded-2xl px-4 py-3 bg-muted">
-                      <div className="flex gap-1">
-                        <span className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" />
-                        <span className="w-2 h-2 bg-purple-500 rounded-full animate-bounce delay-100" />
-                        <span className="w-2 h-2 bg-purple-500 rounded-full animate-bounce delay-200" />
+                      <div className="flex items-center gap-2">
+                        <motion.div
+                          className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center"
+                          animate={{
+                            rotate: 360,
+                            scale: [1, 1.2, 1],
+                          }}
+                          transition={{
+                            rotate: { duration: 1.5, repeat: Infinity, ease: "linear" },
+                            scale: { duration: 0.8, repeat: Infinity, ease: "easeInOut" },
+                          }}
+                        >
+                          <Sparkles className="w-4 h-4 text-white" />
+                        </motion.div>
+                        <motion.span
+                          className="text-sm text-muted-foreground"
+                          animate={{ opacity: [0.5, 1, 0.5] }}
+                          transition={{ duration: 1.2, repeat: Infinity }}
+                        >
+                          正在思考...
+                        </motion.span>
+                      </div>
+                      <div className="flex gap-1 mt-2 justify-center">
+                        {[0, 1, 2].map((i) => (
+                          <motion.span
+                            key={i}
+                            className="w-2 h-2 bg-purple-500 rounded-full"
+                            animate={{
+                              y: [0, -8, 0],
+                              opacity: [0.5, 1, 0.5],
+                            }}
+                            transition={{
+                              duration: 0.6,
+                              repeat: Infinity,
+                              delay: i * 0.1,
+                              ease: "easeInOut",
+                            }}
+                          />
+                        ))}
                       </div>
                     </div>
                   </div>
