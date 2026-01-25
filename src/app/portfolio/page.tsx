@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   DndContext,
   closestCenter,
+  pointerWithin,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -239,21 +240,32 @@ export default function PortfolioPage() {
           sortOrder: index,
         }));
 
-        await fetch('/api/portfolios/reorder', {
+        const response = await fetch('/api/portfolios/reorder', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(updates),
         });
+
+        if (response.ok) {
+          // 成功后重新加载作品集以确保数据同步
+          await fetchPortfolios();
+        } else {
+          console.error('更新排序失败:', await response.text());
+          // 恢复原序
+          setPortfolios(portfolios);
+        }
       } catch (error) {
         console.error('更新排序失败:', error);
+        // 恢复原序
+        setPortfolios(portfolios);
       }
     }
   };
 
   // 表单状态
-  const [formData, setFormData] = useState({
+  const [portfolioFormData, setPortfolioFormData] = useState({
     title: '',
     description: '',
     category: 'other',
@@ -285,7 +297,7 @@ export default function PortfolioPage() {
   // 打开添加对话框
   const handleAdd = () => {
     setEditingPortfolio(null);
-    setFormData({
+    setPortfolioFormData({
       title: '',
       description: '',
       category: 'other',
@@ -299,7 +311,7 @@ export default function PortfolioPage() {
   // 打开编辑对话框
   const handleEdit = (portfolio: Portfolio) => {
     setEditingPortfolio(portfolio);
-    setFormData({
+    setPortfolioFormData({
       title: portfolio.title,
       description: portfolio.description,
       category: portfolio.category,
@@ -314,20 +326,20 @@ export default function PortfolioPage() {
   const handleUpload = async (file: File, type: 'image' | 'video') => {
     try {
       setUploading(true);
-      const formData = new FormData();
-      formData.append('file', file);
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
 
       const response = await fetch('/api/upload', {
         method: 'POST',
-        body: formData,
+        body: uploadFormData,
       });
 
       const data = await response.json();
 
       if (type === 'image') {
-        setFormData({ ...formData, imageUrl: data.key });
+        setPortfolioFormData({ ...portfolioFormData, imageUrl: data.key });
       } else {
-        setFormData({ ...formData, videoUrl: data.key });
+        setPortfolioFormData({ ...portfolioFormData, videoUrl: data.key });
       }
     } catch (error) {
       console.error('上传失败:', error);
@@ -349,7 +361,7 @@ export default function PortfolioPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(portfolioFormData),
       });
 
       if (response.ok) {
@@ -455,7 +467,7 @@ export default function PortfolioPage() {
         {!loading && portfolios.length > 0 && (
           <DndContext
             sensors={sensors}
-            collisionDetection={closestCenter}
+            collisionDetection={pointerWithin}
             onDragEnd={handleDragEnd}
           >
             <SortableContext
@@ -493,8 +505,8 @@ export default function PortfolioPage() {
                 <Label htmlFor="title">标题 *</Label>
                 <Input
                   id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  value={portfolioFormData.title}
+                  onChange={(e) => setPortfolioFormData({ ...portfolioFormData, title: e.target.value })}
                   placeholder="输入作品标题"
                 />
               </div>
@@ -503,8 +515,8 @@ export default function PortfolioPage() {
                 <Label htmlFor="description">描述 *</Label>
                 <Textarea
                   id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  value={portfolioFormData.description}
+                  onChange={(e) => setPortfolioFormData({ ...portfolioFormData, description: e.target.value })}
                   placeholder="描述您的作品"
                   rows={3}
                 />
@@ -516,8 +528,8 @@ export default function PortfolioPage() {
                   {CATEGORIES.filter(c => c.value !== 'all').map((category) => (
                     <Button
                       key={category.value}
-                      variant={formData.category === category.value ? 'default' : 'outline'}
-                      onClick={() => setFormData({ ...formData, category: category.value })}
+                      variant={portfolioFormData.category === category.value ? 'default' : 'outline'}
+                      onClick={() => setPortfolioFormData({ ...portfolioFormData, category: category.value })}
                       className="rounded-full gap-2"
                       size="sm"
                     >
@@ -540,10 +552,10 @@ export default function PortfolioPage() {
                     }}
                     disabled={uploading}
                   />
-                  {formData.imageUrl && (
+                  {portfolioFormData.imageUrl && (
                     <div className="relative">
                       <img
-                        src={formData.imageUrl}
+                        src={portfolioFormData.imageUrl}
                         alt="预览"
                         className="w-full h-48 object-cover rounded-lg"
                       />
@@ -551,7 +563,7 @@ export default function PortfolioPage() {
                         size="icon"
                         variant="destructive"
                         className="absolute top-2 right-2"
-                        onClick={() => setFormData({ ...formData, imageUrl: '' })}
+                        onClick={() => setPortfolioFormData({ ...portfolioFormData, imageUrl: '' })}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -572,14 +584,14 @@ export default function PortfolioPage() {
                     }}
                     disabled={uploading}
                   />
-                  {formData.videoUrl && (
+                  {portfolioFormData.videoUrl && (
                     <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
                       <Play className="h-4 w-4" />
                       <span className="text-sm flex-1 truncate">视频已上传</span>
                       <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() => setFormData({ ...formData, videoUrl: '' })}
+                        onClick={() => setPortfolioFormData({ ...portfolioFormData, videoUrl: '' })}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -592,8 +604,8 @@ export default function PortfolioPage() {
                 <Label htmlFor="website">网站链接</Label>
                 <Input
                   id="website"
-                  value={formData.websiteUrl}
-                  onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
+                  value={portfolioFormData.websiteUrl}
+                  onChange={(e) => setPortfolioFormData({ ...portfolioFormData, websiteUrl: e.target.value })}
                   placeholder="https://example.com"
                 />
               </div>
@@ -605,7 +617,7 @@ export default function PortfolioPage() {
               </Button>
               <Button
                 onClick={handleSave}
-                disabled={!formData.title || !formData.description || uploading}
+                disabled={!portfolioFormData.title || !portfolioFormData.description || uploading}
                 className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
               >
                 {uploading ? '上传中...' : '保存'}
