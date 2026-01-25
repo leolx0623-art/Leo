@@ -124,13 +124,35 @@ export default function ContactPage() {
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // 模拟表单提交
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    alert('消息发送成功！我会尽快回复您。');
-    setFormData({ name: '', email: '', subject: '', message: '' });
-    setIsSubmitting(false);
+
+    try {
+      const response = await fetch('/api/contact/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert(result.message || '消息发送成功！我会尽快回复您。');
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        alert(result.error || '消息发送失败，请稍后重试');
+      }
+    } catch (error) {
+      console.error('发送消息失败:', error);
+      alert('消息发送失败，请检查网络连接后重试');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleGuestbookSubmit = (e: React.FormEvent) => {
