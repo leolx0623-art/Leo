@@ -27,6 +27,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 验证密钥格式（飞书密钥应该是32个字符）
+    if (feishuWebhookSecret && feishuWebhookSecret.length !== 32) {
+      console.error(`❌ 飞书密钥长度不正确: ${feishuWebhookSecret.length} 字符 (应该是 32 字符)`);
+      console.error(`❌ 当前密钥: ${feishuWebhookSecret}`);
+      return NextResponse.json(
+        {
+          error: '飞书机器人密钥配置错误：密钥长度不正确（应该是32个字符），请重新复制完整密钥',
+          debug: {
+            currentLength: feishuWebhookSecret.length,
+            expectedLength: 32,
+            currentSecret: feishuWebhookSecret.substring(0, 5) + '...' + feishuWebhookSecret.substring(-5)
+          }
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!feishuWebhookSecret) {
+      console.warn('⚠️ 飞书机器人密钥未配置，将使用无签名模式（可能失败）');
+    }
+
     // 获取当前时间戳（秒）
     const timestamp = Math.floor(Date.now() / 1000);
 
