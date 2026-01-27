@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createHmac } from 'crypto';
 
 // 飞书机器人消息发送接口
 export async function POST(request: NextRequest) {
@@ -14,8 +15,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 从环境变量获取飞书 Webhook URL
+    // 从环境变量获取飞书 Webhook URL 和密钥
     const feishuWebhookUrl = process.env.FEISHU_WEBHOOK_URL;
+    const feishuWebhookSecret = process.env.FEISHU_WEBHOOK_SECRET;
 
     if (!feishuWebhookUrl) {
       console.error('❌ 飞书 Webhook URL 未配置');
@@ -25,7 +27,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 构建飞书机器人消息（使用文本消息，不需要签名）
+    // 获取当前时间戳（秒）
+    const timestamp = Math.floor(Date.now() / 1000);
+
+    // 构建飞书机器人消息
     const currentTime = new Date().toLocaleString('zh-CN', {
       timeZone: 'Asia/Shanghai',
       year: 'numeric',
@@ -44,13 +49,33 @@ export async function POST(request: NextRequest) {
     };
 
     console.log('📤 准备发送飞书消息:', JSON.stringify(feishuMessage));
+    console.log('🔑 使用密钥:', feishuWebhookSecret ? '已配置' : '未配置');
+
+    // 构建请求头
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    // 如果配置了密钥，添加签名验证
+    if (feishuWebhookSecret) {
+      // 计算签名：HMAC-SHA256(secret, timestamp)
+      const sign = createHmac('sha256', feishuWebhookSecret)
+        .update(timestamp.toString())
+        .digest('base64');
+
+      console.log('🔐 签名信息:', {
+        timestamp,
+        sign: sign.substring(0, 20) + '...' // 只显示前20个字符
+      });
+
+      headers['timestamp'] = timestamp.toString();
+      headers['sign'] = sign;
+    }
 
     // 发送到飞书机器人
     const response = await fetch(feishuWebhookUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(feishuMessage),
     });
 
