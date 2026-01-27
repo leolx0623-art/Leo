@@ -1,13 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
-
-// 生成飞书机器人签名
-function generateFeishuSign(timestamp: number, secret: string): string {
-  const stringToSign = `${timestamp}\n${secret}`;
-  const hmac = crypto.createHmac('sha256', Buffer.from(secret, 'utf-8'));
-  const signature = hmac.update(Buffer.from(stringToSign, 'utf-8')).digest();
-  return signature.toString('base64');
-}
 
 // 飞书机器人消息发送接口
 export async function POST(request: NextRequest) {
@@ -25,10 +16,6 @@ export async function POST(request: NextRequest) {
 
     // 从环境变量获取飞书 Webhook URL
     const feishuWebhookUrl = process.env.FEISHU_WEBHOOK_URL;
-    const feishuSecret = process.env.FEISHU_WEBHOOK_SECRET;
-
-    console.log('🔧 飞书 Webhook URL:', feishuWebhookUrl);
-    console.log('🔐 飞书 Secret 是否配置:', !!feishuSecret);
 
     if (!feishuWebhookUrl) {
       console.error('❌ 飞书 Webhook URL 未配置');
@@ -38,7 +25,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 构建飞书机器人消息
+    // 构建飞书机器人消息（使用文本消息，不需要签名）
     const currentTime = new Date().toLocaleString('zh-CN', {
       timeZone: 'Asia/Shanghai',
       year: 'numeric',
@@ -49,57 +36,14 @@ export async function POST(request: NextRequest) {
       second: '2-digit'
     });
 
-    const feishuMessage: any = {
-      msg_type: "interactive",
-      card: {
-        config: {
-          wide_screen_mode: true
-        },
-        header: {
-          title: {
-            tag: "plain_text",
-            content: "📬 新的访客留言"
-          },
-          template: "orange"
-        },
-        elements: [
-          {
-            tag: "div",
-            text: {
-              tag: "lark_md",
-              content: `**👤 访客姓名：** ${name}\n**📅 留言时间：** ${currentTime}\n**💬 留言内容：**\n${message}`
-            }
-          },
-          {
-            tag: "action",
-            actions: [
-              {
-                tag: "button",
-                text: {
-                  tag: "plain_text",
-                  content: "📧 回复邮件"
-                },
-                type: "primary",
-                url: "mailto:hello@aigccreator.com"
-              }
-            ]
-          }
-        ]
+    const feishuMessage = {
+      msg_type: "text",
+      content: {
+        text: `📬 新的访客留言\n\n👤 访客姓名：${name}\n📅 留言时间：${currentTime}\n💬 留言内容：\n${message}`
       }
     };
 
-    // 如果配置了密钥，添加签名验证
-    if (feishuSecret) {
-      const timestamp = Date.now();
-      const sign = generateFeishuSign(timestamp, feishuSecret);
-      feishuMessage.timestamp = timestamp;
-      feishuMessage.sign = sign;
-      console.log('🔐 已添加签名验证:', { timestamp, sign });
-    } else {
-      console.log('⚠️  未配置密钥，使用无签名模式');
-    }
-
-    console.log('📤 准备发送飞书消息:', JSON.stringify(feishuMessage, null, 2));
+    console.log('📤 准备发送飞书消息:', JSON.stringify(feishuMessage));
 
     // 发送到飞书机器人
     const response = await fetch(feishuWebhookUrl, {
@@ -124,11 +68,11 @@ export async function POST(request: NextRequest) {
     const responseData = await response.json();
     console.log('✅ 飞书API响应数据:', responseData);
 
-    // 检查飞书返回的code
-    if (responseData.code !== 0) {
+    // 检查飞书返回的code（0表示成功）
+    if (responseData.code !== undefined && responseData.code !== 0) {
       console.error('❌ 飞书返回错误:', responseData);
       return NextResponse.json(
-        { error: `飞书返回错误: ${responseData.msg}` },
+        { error: `飞书返回错误: ${responseData.msg || '未知错误'}` },
         { status: 500 }
       );
     }
