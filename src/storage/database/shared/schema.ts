@@ -1,7 +1,55 @@
-import { pgTable, text, timestamp, varchar, integer, index } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, varchar, integer, index, boolean } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 import { createSchemaFactory } from "drizzle-zod"
 import { z } from "zod"
+
+// 个人名片表
+export const profile = pgTable(
+  "profile",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    name: varchar("name", { length: 255 }).notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    bio: text("bio").notNull(),
+    location: varchar("location", { length: 255 }),
+    email: varchar("email", { length: 255 }),
+    github: varchar("github", { length: 255 }),
+    linkedin: varchar("linkedin", { length: 255 }),
+    avatar: text("avatar"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }),
+  },
+  (table) => ({
+    idIdx: index("profile_id_idx").on(table.id),
+  })
+)
+
+// 网站设置表
+export const settings = pgTable(
+  "settings",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    siteName: varchar("site_name", { length: 255 }).notNull(),
+    siteDescription: text("site_description"),
+    enableContactForm: boolean("enable_contact_form").notNull().default(true),
+    enableAiChat: boolean("enable_ai_chat").notNull().default(true),
+    contactEmail: varchar("contact_email", { length: 255 }).notNull(),
+    aiPersona: text("ai_persona"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }),
+  },
+  (table) => ({
+    idIdx: index("settings_id_idx").on(table.id),
+  })
+)
 
 // 联系信息表
 export const contactInfo = pgTable(
@@ -96,6 +144,8 @@ export const updatePortfolioSchema = createCoercedInsertSchema(portfolios)
   .partial()
 
 // TypeScript types
+export type Profile = typeof profile.$inferSelect
+export type Settings = typeof settings.$inferSelect
 export type ContactInfo = typeof contactInfo.$inferSelect
 export type InsertContactInfo = z.infer<typeof insertContactInfoSchema>
 export type UpdateContactInfo = z.infer<typeof updateContactInfoSchema>

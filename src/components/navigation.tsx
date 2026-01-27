@@ -10,6 +10,7 @@ const navItems = [
   { name: '作品集', path: '/portfolio' },
   { name: 'AI 交流', path: '/chat' },
   { name: '联系我', path: '/contact' },
+  { name: '后台管理', path: '/admin' },
 ];
 
 export function Navigation() {
