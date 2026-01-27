@@ -11,8 +11,8 @@ async function testFeishuNoSignature() {
   console.log('========================================\n');
 
   // 从环境变量读取配置
-  const WEBHOOK_URL = process.env.FEISHU_WEBHOOK_URL || 'https://open.feishu.cn/open-apis/bot/v2/hook/da839b28-73d4-4572-854e-ef941033ee6f';
-  const SECRET = process.env.FEISHU_WEBHOOK_SECRET || 'ONHtg1cudF3QKiJ8edyrce';
+  const WEBHOOK_URL = process.env.FEISHU_WEBHOOK_URL || 'https://open.feishu.cn/open-apis/bot/v2/hook/09451e00-4465-464d-95b4-ed3861ea001d';
+  const SECRET = process.env.FEISHU_WEBHOOK_SECRET || '';
 
   console.log('📋 配置信息：');
   console.log(`  Webhook URL: ${WEBHOOK_URL}`);
