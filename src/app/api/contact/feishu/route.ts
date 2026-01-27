@@ -27,25 +27,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 验证密钥格式（飞书密钥应该是32个字符）
+    // 检查是否启用签名验证（密钥必须是32个字符才启用）
+    const useSignature = feishuWebhookSecret && feishuWebhookSecret.length === 32;
+
     if (feishuWebhookSecret && feishuWebhookSecret.length !== 32) {
-      console.error(`❌ 飞书密钥长度不正确: ${feishuWebhookSecret.length} 字符 (应该是 32 字符)`);
-      console.error(`❌ 当前密钥: ${feishuWebhookSecret}`);
-      return NextResponse.json(
-        {
-          error: '飞书机器人密钥配置错误：密钥长度不正确（应该是32个字符），请重新复制完整密钥',
-          debug: {
-            currentLength: feishuWebhookSecret.length,
-            expectedLength: 32,
-            currentSecret: feishuWebhookSecret.substring(0, 5) + '...' + feishuWebhookSecret.substring(-5)
-          }
-        },
-        { status: 500 }
-      );
+      console.warn(`⚠️ 飞书密钥长度不正确 (${feishuWebhookSecret.length} 字符)，将使用无签名模式`);
+      console.warn(`⚠️ 如需启用签名验证，请在飞书机器人设置中开启"签名校验"并复制完整的32位密钥`);
     }
 
     if (!feishuWebhookSecret) {
-      console.warn('⚠️ 飞书机器人密钥未配置，将使用无签名模式（可能失败）');
+      console.warn('⚠️ 飞书机器人密钥未配置，将使用无签名模式');
     }
 
     // 获取当前时间戳（秒）
@@ -70,17 +61,17 @@ export async function POST(request: NextRequest) {
     };
 
     console.log('📤 准备发送飞书消息:', JSON.stringify(feishuMessage));
-    console.log('🔑 使用密钥:', feishuWebhookSecret ? '已配置' : '未配置');
+    console.log(`🔑 签名模式: ${useSignature ? '已启用（32位密钥）' : '未启用'}`);
 
     // 构建请求头
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
 
-    // 如果配置了密钥，添加签名验证
-    if (feishuWebhookSecret) {
+    // 如果启用签名验证，添加签名
+    if (useSignature) {
       // 计算签名：HMAC-SHA256(secret, timestamp)
-      const sign = createHmac('sha256', feishuWebhookSecret)
+      const sign = createHmac('sha256', feishuWebhookSecret!)
         .update(timestamp.toString())
         .digest('base64');
 
@@ -91,6 +82,8 @@ export async function POST(request: NextRequest) {
 
       headers['timestamp'] = timestamp.toString();
       headers['sign'] = sign;
+    } else {
+      console.log('📤 使用无签名模式发送消息');
     }
 
     // 发送到飞书机器人
