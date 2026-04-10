@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from 'coze-coding-dev-sdk';
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import { profile } from '@/storage/database/shared/schema';
+
+// 创建数据库连接池
+const pool = new Pool({
+  host: process.env.COZE_DB_HOST || process.env.PGHOST,
+  port: parseInt(process.env.PGPORT || "5432"),
+  user: process.env.PGUSER || process.env.COZE_DB_USER,
+  password: process.env.PGPASSWORD || process.env.COZE_DB_PASSWORD,
+  database: process.env.PGDATABASE || process.env.COZE_DB_NAME,
+});
+
+// 创建 drizzle 实例
+const db = drizzle(pool);
 
 // 获取个人名片数据
 export async function GET() {
   try {
-    const db = await getDb();
     const profiles = await db.select().from(profile).limit(1);
     const profileData = profiles[0] || {
       name: '',
@@ -31,7 +43,6 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
-    const db = await getDb();
 
     // 删除现有数据
     await db.delete(profile);
