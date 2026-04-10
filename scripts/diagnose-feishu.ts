@@ -163,4 +163,4 @@ function diagnoseFeishu() {
 }
 
 // 运行诊断
-diagnoseFeishu().catch(console.error);
+diagnoseFeishu();

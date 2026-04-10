@@ -151,7 +151,7 @@ export function MoodInteraction() {
   }, []);
 
   // 加载缓存的心情
-  const loadMoodFromCache = () => {
+  function loadMoodFromCache() {
     try {
       const cached = localStorage.getItem(MOOD_CACHE_KEY);
       if (cached) {
@@ -170,10 +170,10 @@ export function MoodInteraction() {
 
     // 如果没有缓存或缓存过期，使用随机心情
     updateMood();
-  };
+  }
 
   // 加载缓存的座右铭
-  const loadQuoteFromCache = () => {
+  function loadQuoteFromCache() {
     try {
       const cached = localStorage.getItem(QUOTE_CACHE_KEY);
       if (cached) {
@@ -192,10 +192,10 @@ export function MoodInteraction() {
 
     // 如果没有缓存或缓存过期，更新座右铭
     updateQuote();
-  };
+  }
 
   // 更新心情
-  const updateMood = () => {
+  function updateMood() {
     const randomIndex = Math.floor(Math.random() * ALL_MOODS.length);
     const newMood = ALL_MOODS[randomIndex];
     setCurrentMood(newMood);
@@ -209,7 +209,7 @@ export function MoodInteraction() {
   };
 
   // 更新座右铭
-  const updateQuote = async () => {
+  async function updateQuote() {
     try {
       const response = await fetch('/api/status');
       const data = await response.json();
@@ -227,7 +227,7 @@ export function MoodInteraction() {
     } catch (error) {
       console.error('更新座右铭失败:', error);
     }
-  };
+  }
 
   // 点击切换心情
   const handleClick = () => {
@@ -331,7 +331,7 @@ export function MoodInteraction() {
             className="text-center relative z-10"
           >
             <p className="text-sm text-gray-200 font-medium leading-relaxed px-2">
-              "{quote}"
+              「{quote}」
             </p>
           </motion.div>
 

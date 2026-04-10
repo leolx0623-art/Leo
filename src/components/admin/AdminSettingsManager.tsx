@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Settings, Save, RefreshCw, Mail, Bot, Database } from 'lucide-react';
+import { Settings, Save, RefreshCw, Mail, Bot } from 'lucide-react';
 
 interface SiteSettings {
   siteName: string;
@@ -77,7 +77,7 @@ export default function AdminSettingsManager() {
     }
   };
 
-  const handleChange = (field: keyof SiteSettings, value: any) => {
+  const handleChange = (field: keyof SiteSettings, value: string | boolean) => {
     setSettings(prev => ({
       ...prev,
       [field]: value

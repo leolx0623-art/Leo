@@ -195,7 +195,7 @@ export default function AdminPortfolioManager() {
         {works.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
             <Image className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>暂无作品，点击"添加作品"开始创建</p>
+            <p>暂无作品，点击「添加作品」开始创建</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

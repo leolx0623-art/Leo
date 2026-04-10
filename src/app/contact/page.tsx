@@ -10,6 +10,14 @@ import { Navigation } from '@/components/navigation';
 import { ContactInfoEditor } from '@/components/contact-info-editor';
 import { Mail, Phone, MapPin, Download, MessageSquare, ExternalLink, Edit } from 'lucide-react';
 
+interface ContactInfo {
+  email?: string;
+  phone?: string;
+  location?: string;
+  github?: string;
+  bilibili?: string;
+}
+
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: '',
@@ -60,7 +68,7 @@ export default function ContactPage() {
     }
   };
 
-  const handleContactInfoSave = async (data: any) => {
+  const handleContactInfoSave = async (data: ContactInfo) => {
     try {
       const response = await fetch('/api/contact/info', {
         method: 'PUT',

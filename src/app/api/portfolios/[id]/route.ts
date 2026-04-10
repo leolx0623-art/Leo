@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { portfolioManager } from "@/storage/database/portfolioManager"
 import { S3Storage } from "coze-coding-dev-sdk"
+import { Portfolio } from "@/storage/database/shared/schema"
 
 // 初始化对象存储
 const storage = new S3Storage({
@@ -25,7 +26,7 @@ export async function GET(
     }
 
     // 生成签名 URL
-    const portfolioWithUrls: any = { ...portfolio }
+    const portfolioWithUrls = { ...portfolio } as Portfolio & { imageUrl?: string; videoUrl?: string }
 
     if (portfolio.imageUrl) {
       portfolioWithUrls.imageUrl = await storage.generatePresignedUrl({
