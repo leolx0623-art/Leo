@@ -18,10 +18,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(portfolios)
   } catch (error) {
     console.error("获取作品集失败:", error)
-    return NextResponse.json(
-      { error: "获取作品集失败" },
-      { status: 500 }
-    )
+    // DB不可用时返回空数组而非错误对象，避免前端崩溃
+    return NextResponse.json([])
   }
 }
 

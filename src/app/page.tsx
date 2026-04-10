@@ -251,9 +251,11 @@ export default function Home() {
     try {
       const response = await fetch('/api/portfolios');
       const data = await response.json();
-      setPortfolios(data);
+      // 确保data是数组（API可能在DB不可用时返回错误对象）
+      setPortfolios(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('获取作品集失败:', error);
+      setPortfolios([]);
     } finally {
       setLoading(false);
     }
