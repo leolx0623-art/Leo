@@ -1,8 +1,6 @@
 import type { NextConfig } from 'next';
-import path from 'path';
 
 const nextConfig: NextConfig = {
-  // outputFileTracingRoot: path.resolve(__dirname, '../../'),
   /* config options here */
   allowedDevOrigins: ['*.dev.coze.site'],
   images: {
@@ -15,24 +13,24 @@ const nextConfig: NextConfig = {
       // 抖音图片
       {
         protocol: 'https',
-        hostname: '**.douyinpic.com',
+        hostname: '*.douyinpic.com',
         pathname: '/**',
       },
       // 小红书图片
       {
         protocol: 'https',
-        hostname: '**.xhscdn.com',
+        hostname: '*.xhscdn.com',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: '**.xiaohongshu.com',
+        hostname: '*.xiaohongshu.com',
         pathname: '/**',
       },
       // B站图片
       {
         protocol: 'https',
-        hostname: '**.bilibili.com',
+        hostname: '*.bilibili.com',
         pathname: '/**',
       },
       {
