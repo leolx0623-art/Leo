@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { LLMClient, SearchClient, Config } from 'coze-coding-dev-sdk';
 
 interface WeatherInfo {
   city: string;
@@ -15,7 +14,6 @@ interface StatusResponse {
 }
 
 // 缓存配置
-const CACHE_KEY = 'weather_cache';
 const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12小时
 
 // 缓存接口
@@ -24,81 +22,16 @@ interface WeatherCache {
   timestamp: number;
 }
 
-// 全局缓存（生产环境应该使用 Redis 或其他持久化存储）
+// 全局缓存
 let weatherCache: WeatherCache | null = null;
 
-// 天气图标映射
-const WEATHER_EMOJIS: Record<string, string> = {
-  '晴': '☀️',
-  'sunny': '☀️',
-  '多云': '⛅',
-  'cloudy': '⛅',
-  '阴': '☁️',
-  'overcast': '☁️',
-  '雨': '🌧️',
-  'rain': '🌧️',
-  '小雨': '🌦️',
-  '中雨': '🌧️',
-  '大雨': '⛈️',
-  '雪': '❄️',
-  'snow': '❄️',
-  '雷': '⚡',
-  'thunder': '⚡',
-  '雾': '🌫️',
-  'fog': '🌫️',
-};
-
-// 解析天气信息
-function parseWeatherInfo(searchResults: string): WeatherInfo {
-  let temperature = '25°C';
-  let condition = '晴';
-  let emoji = '☀️';
-
-  console.log('原始搜索结果:', searchResults);
-
-  // 尝试从搜索结果中提取温度（支持多种格式）
-  const tempPatterns = [
-    /(\d+)\s*°?\s*C/,  // 25°C 或 25 C
-    /(\d+)\s*摄氏度/,   // 25摄氏度
-    /温度[：:]\s*(\d+)/,  // 温度：25
-  ];
-
-  for (const pattern of tempPatterns) {
-    const tempMatch = searchResults.match(pattern);
-    if (tempMatch) {
-      temperature = `${tempMatch[1]}°C`;
-      console.log('提取到温度:', temperature);
-      break;
-    }
-  }
-
-  // 尝试识别天气状况（按优先级匹配）
-  const weatherPatterns = [
-    { keywords: ['雷雨', '雷阵雨'], condition: '雷阵雨', emoji: '⛈️' },
-    { keywords: ['暴雨', '大雨'], condition: '大雨', emoji: '⛈️' },
-    { keywords: ['中雨'], condition: '中雨', emoji: '🌧️' },
-    { keywords: ['小雨', '雨'], condition: '小雨', emoji: '🌦️' },
-    { keywords: ['雪', '雨夹雪'], condition: '雪', emoji: '❄️' },
-    { keywords: ['雾', '霾', '雾霾'], condition: '雾', emoji: '🌫️' },
-    { keywords: ['阴'], condition: '阴', emoji: '☁️' },
-    { keywords: ['多云', '少云', '晴转多云'], condition: '多云', emoji: '⛅' },
-    { keywords: ['晴', '晴朗'], condition: '晴', emoji: '☀️' },
-  ];
-
-  for (const pattern of weatherPatterns) {
-    if (pattern.keywords.some(keyword => searchResults.includes(keyword))) {
-      condition = pattern.condition;
-      emoji = pattern.emoji;
-      console.log('提取到天气状况:', condition);
-      break;
-    }
-  }
-
+// 默认天气信息
+function getDefaultWeather(): WeatherInfo {
   return {
-    city: '上海',  // 固定为上海
-    temperature,
-    condition,
-    emoji,
+    city: '上海',
+    temperature: '25°C',
+    condition: '晴',
+    emoji: '☀️',
   };
 }
 
@@ -115,14 +48,14 @@ async function getWeatherInfo(): Promise<WeatherInfo> {
   console.log('开始获取上海实时天气...');
 
   try {
+    const { SearchClient, Config } = await import('coze-coding-dev-sdk');
     const config = new Config();
     const searchClient = new SearchClient(config);
 
-    // 搜索上海实时天气 - 使用更精确的关键词
+    // 搜索上海实时天气
     const searchQueries = [
       '上海今天实时天气温度',
       '上海市现在天气',
-      '上海天气情况',
     ];
 
     let searchResults = '';
@@ -146,45 +79,55 @@ async function getWeatherInfo(): Promise<WeatherInfo> {
       }
     }
 
-    // 如果成功获取到搜索结果，解析天气信息
-    if (searchResults.trim()) {
-      const weatherData = parseWeatherInfo(searchResults);
-      console.log('解析后的天气数据:', weatherData);
+    // 解析天气信息
+    let temperature = '25°C';
+    let condition = '晴';
+    let emoji = '☀️';
 
-      // 更新缓存
-      weatherCache = {
-        data: weatherData,
-        timestamp: now,
-      };
-
-      return weatherData;
+    // 尝试从搜索结果中提取温度
+    const tempMatch = searchResults.match(/(\d+)\s*°?\s*C/);
+    if (tempMatch) {
+      temperature = `${tempMatch[1]}°C`;
     }
 
-    // 如果搜索失败，返回默认值
-    console.log('搜索未返回结果，使用默认天气');
-    const defaultWeather = {
+    // 尝试识别天气状况
+    const weatherPatterns = [
+      { keywords: ['雷雨', '雷阵雨'], condition: '雷阵雨', emoji: '⛈️' },
+      { keywords: ['暴雨', '大雨'], condition: '大雨', emoji: '⛈️' },
+      { keywords: ['中雨'], condition: '中雨', emoji: '🌧️' },
+      { keywords: ['小雨', '雨'], condition: '小雨', emoji: '🌦️' },
+      { keywords: ['雪'], condition: '雪', emoji: '❄️' },
+      { keywords: ['雾', '霾'], condition: '雾', emoji: '🌫️' },
+      { keywords: ['阴'], condition: '阴', emoji: '☁️' },
+      { keywords: ['多云', '少云'], condition: '多云', emoji: '⛅' },
+      { keywords: ['晴', '晴朗'], condition: '晴', emoji: '☀️' },
+    ];
+
+    for (const pattern of weatherPatterns) {
+      if (pattern.keywords.some(keyword => searchResults.includes(keyword))) {
+        condition = pattern.condition;
+        emoji = pattern.emoji;
+        break;
+      }
+    }
+
+    const weatherData: WeatherInfo = {
       city: '上海',
-      temperature: '25°C',
-      condition: '晴',
-      emoji: '☀️',
+      temperature,
+      condition,
+      emoji,
     };
 
-    // 缓存默认值
+    // 更新缓存
     weatherCache = {
-      data: defaultWeather,
+      data: weatherData,
       timestamp: now,
     };
 
-    return defaultWeather;
+    return weatherData;
   } catch (error) {
     console.error('获取天气信息失败:', error);
-
-    const defaultWeather = {
-      city: '上海',
-      temperature: '25°C',
-      condition: '晴',
-      emoji: '☀️',
-    };
+    const defaultWeather = getDefaultWeather();
 
     // 缓存默认值
     weatherCache = {
@@ -199,6 +142,7 @@ async function getWeatherInfo(): Promise<WeatherInfo> {
 // 生成心情语录
 async function generateMoodQuote(): Promise<string> {
   try {
+    const { LLMClient, Config } = await import('coze-coding-dev-sdk');
     const config = new Config();
     const llmClient = new LLMClient(config);
 
@@ -263,12 +207,7 @@ export async function GET(request: NextRequest) {
     // 返回错误响应，但保持系统在线状态
     return NextResponse.json(
       {
-        weather: {
-          city: '上海',
-          temperature: '25°C',
-          condition: '晴',
-          emoji: '☀️',
-        },
+        weather: getDefaultWeather(),
         moodQuote: '系统正在休眠...',
         online: true,
       } as StatusResponse,
@@ -306,12 +245,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: '刷新失败',
-        weather: {
-          city: '上海',
-          temperature: '25°C',
-          condition: '晴',
-          emoji: '☀️',
-        },
+        weather: getDefaultWeather(),
         moodQuote: '系统正在休眠...',
         online: true,
       },
