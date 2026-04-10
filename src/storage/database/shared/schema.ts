@@ -17,6 +17,11 @@ export const profile = pgTable(
     email: varchar("email", { length: 255 }),
     github: varchar("github", { length: 255 }),
     linkedin: varchar("linkedin", { length: 255 }),
+    twitter: varchar("twitter", { length: 255 }),
+    douyin: varchar("douyin", { length: 255 }),
+    xiaohongshu: varchar("xiaohongshu", { length: 255 }),
+    bilibili: varchar("bilibili", { length: 255 }),
+    weixin: varchar("weixin", { length: 255 }),
     avatar: text("avatar"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
@@ -88,6 +93,10 @@ export const portfolios = pgTable(
     imageUrl: text("image_url"),
     videoUrl: text("video_url"),
     websiteUrl: text("website_url"),
+    tags: text("tags"), // JSON 数组存储标签
+    viewCount: integer("view_count").notNull().default(0),
+    featured: boolean("featured").notNull().default(false),
+    sort: integer("sort").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -97,6 +106,7 @@ export const portfolios = pgTable(
     createdAtIdx: index("portfolios_created_at_idx").on(table.createdAt),
     categoryIdx: index("portfolios_category_idx").on(table.category),
     sortOrderIdx: index("portfolios_sort_order_idx").on(table.sortOrder),
+    featuredIdx: index("portfolios_featured_idx").on(table.featured),
   })
 )
 
@@ -130,6 +140,10 @@ export const insertPortfolioSchema = createCoercedInsertSchema(portfolios).pick(
   imageUrl: true,
   videoUrl: true,
   websiteUrl: true,
+  tags: true,
+  viewCount: true,
+  featured: true,
+  sort: true,
 })
 
 export const updatePortfolioSchema = createCoercedInsertSchema(portfolios)
@@ -140,6 +154,10 @@ export const updatePortfolioSchema = createCoercedInsertSchema(portfolios)
     imageUrl: true,
     videoUrl: true,
     websiteUrl: true,
+    tags: true,
+    viewCount: true,
+    featured: true,
+    sort: true,
   })
   .partial()
 

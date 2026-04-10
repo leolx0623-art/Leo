@@ -1,4 +1,4 @@
-import { eq, desc, asc } from "drizzle-orm"
+import { eq, desc, asc, sql } from "drizzle-orm"
 import { drizzle } from "drizzle-orm/node-postgres"
 import { Pool } from "pg"
 import {
@@ -38,6 +38,14 @@ export class PortfolioManager {
     return db.select().from(portfolios).orderBy(asc(portfolios.sortOrder), desc(portfolios.createdAt))
   }
 
+  async getFeaturedPortfolios(): Promise<Portfolio[]> {
+    return db
+      .select()
+      .from(portfolios)
+      .where(eq(portfolios.featured, true))
+      .orderBy(asc(portfolios.sort), desc(portfolios.createdAt))
+  }
+
   async getPortfolioById(id: string): Promise<Portfolio | null> {
     const [portfolio] = await db
       .select()
@@ -71,6 +79,16 @@ export class PortfolioManager {
         .set({ sortOrder: update.sortOrder, updatedAt: new Date() })
         .where(eq(portfolios.id, update.id))
     }
+  }
+
+  async incrementViewCount(id: string): Promise<void> {
+    await db
+      .update(portfolios)
+      .set({
+        viewCount: sql`${portfolios.viewCount} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(portfolios.id, id))
   }
 }
 

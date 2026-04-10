@@ -25,11 +25,7 @@ export default function ContactPage() {
     subject: '',
     message: '',
   });
-  const [guestbookMessages, setGuestbookMessages] = useState([
-    { id: 1, name: '陈小伟', message: '太棒了的作品集！喜欢这种赛博朋克美学。', date: '2024-01-15' },
-    { id: 2, name: '李小红', message: '你的 AI 生成艺术太令人惊叹了。非常期待合作！', date: '2024-01-14' },
-    { id: 3, name: '张小明', message: '视频项目做得太好了。非常受启发！', date: '2024-01-13' },
-  ]);
+  const [guestbookMessages, setGuestbookMessages] = useState<Array<{ id: number; name: string; message: string; date: string }>>([]);
   const [guestbookName, setGuestbookName] = useState('');
   const [guestbookInput, setGuestbookInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);

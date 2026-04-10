@@ -21,6 +21,10 @@ interface PersonalInfo {
   github: string;
   twitter: string;
   linkedin: string;
+  douyin: string;
+  xiaohongshu: string;
+  bilibili: string;
+  weixin: string;
 }
 
 interface Experience {
@@ -239,6 +243,44 @@ export function ProfileEditor({ open, onOpenChange, initialData, onSave }: Profi
                         value={data.personalInfo.linkedin}
                         onChange={(e) => updatePersonalInfo('linkedin', e.target.value)}
                         placeholder="用户名或链接"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="douyin" className="text-sm">🎵 抖音</Label>
+                      <Input
+                        id="douyin"
+                        value={data.personalInfo.douyin}
+                        onChange={(e) => updatePersonalInfo('douyin', e.target.value)}
+                        placeholder="抖音号或主页链接"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="xiaohongshu" className="text-sm">📕 小红书</Label>
+                      <Input
+                        id="xiaohongshu"
+                        value={data.personalInfo.xiaohongshu}
+                        onChange={(e) => updatePersonalInfo('xiaohongshu', e.target.value)}
+                        placeholder="小红书号或主页链接"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bilibili" className="text-sm">📺 B站</Label>
+                      <Input
+                        id="bilibili"
+                        value={data.personalInfo.bilibili}
+                        onChange={(e) => updatePersonalInfo('bilibili', e.target.value)}
+                        placeholder="B站UID或主页链接"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="weixin" className="text-sm">💬 微信 / 视频号</Label>
+                      <Input
+                        id="weixin"
+                        value={data.personalInfo.weixin}
+                        onChange={(e) => updatePersonalInfo('weixin', e.target.value)}
+                        placeholder="微信号或视频号名称"
                       />
                     </div>
                   </div>

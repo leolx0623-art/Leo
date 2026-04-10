@@ -87,7 +87,7 @@ function SortablePortfolioCard({
 
   return (
     <div ref={setNodeRef} style={style} className="h-full">
-      <Card className="h-full flex flex-col overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 group">
+      <Card className="h-full flex flex-col overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 group border-purple-500/10 hover:border-purple-500/30">
         {/* 媒体内容预览 */}
         <div className="relative aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center overflow-hidden flex-shrink-0">
           {/* 拖拽手柄 */}
@@ -104,7 +104,7 @@ function SortablePortfolioCard({
             <img
               src={portfolio.imageUrl}
               alt={portfolio.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
             />
           )}
 
@@ -112,7 +112,7 @@ function SortablePortfolioCard({
           {!portfolio.imageUrl && portfolio.videoUrl && (
             <video
               src={portfolio.videoUrl}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               muted
               preload="metadata"
             />
@@ -120,13 +120,13 @@ function SortablePortfolioCard({
 
           {/* 优先级3: 网站预览 */}
           {!portfolio.imageUrl && !portfolio.videoUrl && portfolio.websiteUrl && (
-            <div className="w-full h-full p-6 flex flex-col items-center justify-center bg-gradient-to-br from-blue-900/40 to-purple-900/40">
-              <Link2 className="w-16 h-16 text-white/80 mb-3" />
+            <div className="w-full h-full p-6 flex flex-col items-center justify-center bg-gradient-to-br from-blue-900/40 to-purple-900/40 group-hover:from-blue-900/60 group-hover:to-purple-900/60 transition-colors duration-500">
+              <Link2 className="w-16 h-16 text-white/80 mb-3 group-hover:text-purple-300 transition-colors" />
               <p className="text-white/90 text-sm font-medium text-center line-clamp-2">
                 {portfolio.title}
               </p>
               <p className="text-white/60 text-xs mt-2 truncate max-w-full">
-                {portfolio.websiteUrl.replace(/^https?:\/\//, '')}
+                {portfolio.websiteUrl.replace(/^https?:\/\/\//, '')}
               </p>
             </div>
           )}
@@ -139,12 +139,21 @@ function SortablePortfolioCard({
             </div>
           )}
 
-          {/* 视频播放按钮遮罩 */}
+          {/* 视频播放按钮遮罩 - enhanced */}
           {!portfolio.imageUrl && portfolio.videoUrl && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/20 transition-colors">
-              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Play className="w-8 h-8 text-white ml-1" />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/20 transition-colors duration-300">
+              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-125 group-hover:bg-purple-500/50 transition-all duration-500 border border-white/20 group-hover:border-purple-400/50 shadow-lg group-hover:shadow-purple-500/30">
+                <Play className="w-8 h-8 text-white ml-1" fill="white" />
               </div>
+            </div>
+          )}
+
+          {/* Video badge indicator */}
+          {portfolio.videoUrl && !portfolio.imageUrl && (
+            <div className="absolute bottom-3 left-3 z-10">
+              <span className="text-xs bg-red-500/80 text-white px-2 py-0.5 rounded-full flex items-center gap-1 backdrop-blur-sm">
+                <Play className="w-2.5 h-2.5" fill="white" /> 视频
+              </span>
             </div>
           )}
 
@@ -475,14 +484,20 @@ function PortfolioContent() {
               items={portfolios.map(p => p.id)}
               strategy={verticalListSortingStrategy}
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {portfolios.map((portfolio) => (
-                  <SortablePortfolioCard
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {portfolios.map((portfolio, idx) => (
+                  <motion.div
                     key={portfolio.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05, duration: 0.3 }}
+                  >
+                    <SortablePortfolioCard
                     portfolio={portfolio}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                   />
+                  </motion.div>
                 ))}
               </div>
             </SortableContext>

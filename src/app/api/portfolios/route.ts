@@ -6,6 +6,12 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get("category") || undefined
+    const featured = searchParams.get("featured")
+
+    if (featured === "true") {
+      const portfolios = await portfolioManager.getFeaturedPortfolios()
+      return NextResponse.json(portfolios)
+    }
 
     const portfolios = await portfolioManager.getPortfolios(category)
 

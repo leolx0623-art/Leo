@@ -42,6 +42,9 @@ export async function GET(
       })
     }
 
+    // 增加浏览量（异步，不阻塞返回）
+    portfolioManager.incrementViewCount(id).catch(console.error)
+
     return NextResponse.json(portfolioWithUrls)
   } catch (error) {
     console.error("获取作品集失败:", error)

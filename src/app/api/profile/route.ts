@@ -27,6 +27,11 @@ export async function GET() {
       email: '',
       github: '',
       linkedin: '',
+      twitter: '',
+      douyin: '',
+      xiaohongshu: '',
+      bilibili: '',
+      weixin: '',
       avatar: '',
     };
     return NextResponse.json(profileData);

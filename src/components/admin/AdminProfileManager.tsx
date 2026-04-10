@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { User, MapPin, Github, Linkedin, Mail, Save, RefreshCw } from 'lucide-react';
+import { User, MapPin, Github, Linkedin, Mail, Save, RefreshCw, Music, Video, MessageCircle, BookOpen } from 'lucide-react';
 
 interface ProfileData {
   name: string;
@@ -16,6 +16,11 @@ interface ProfileData {
   email: string;
   github: string;
   linkedin: string;
+  twitter: string;
+  douyin: string;
+  xiaohongshu: string;
+  bilibili: string;
+  weixin: string;
   avatar: string;
 }
 
@@ -28,6 +33,11 @@ export default function AdminProfileManager() {
     email: '',
     github: '',
     linkedin: '',
+    twitter: '',
+    douyin: '',
+    xiaohongshu: '',
+    bilibili: '',
+    weixin: '',
     avatar: '',
   });
   const [loading, setLoading] = useState(false);
@@ -259,6 +269,85 @@ export default function AdminProfileManager() {
               placeholder="https://linkedin.com/in/username"
               className="bg-black/50 border-red-900/50 focus:border-red-500 text-white"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="twitter" className="text-gray-300">
+              <MessageCircle className="w-4 h-4 inline mr-1" />
+              Twitter / X
+            </Label>
+            <Input
+              id="twitter"
+              value={profile.twitter}
+              onChange={(e) => handleChange('twitter', e.target.value)}
+              placeholder="https://twitter.com/username"
+              className="bg-black/50 border-red-900/50 focus:border-red-500 text-white"
+            />
+          </div>
+        </div>
+
+        {/* 社交媒体 */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-white border-b border-red-900/30 pb-2">
+            社交媒体
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="douyin" className="text-gray-300">
+                <Music className="w-4 h-4 inline mr-1" />
+                抖音
+              </Label>
+              <Input
+                id="douyin"
+                value={profile.douyin}
+                onChange={(e) => handleChange('douyin', e.target.value)}
+                placeholder="抖音号或主页链接"
+                className="bg-black/50 border-red-900/50 focus:border-red-500 text-white"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="xiaohongshu" className="text-gray-300">
+                <BookOpen className="w-4 h-4 inline mr-1" />
+                小红书
+              </Label>
+              <Input
+                id="xiaohongshu"
+                value={profile.xiaohongshu}
+                onChange={(e) => handleChange('xiaohongshu', e.target.value)}
+                placeholder="小红书号或主页链接"
+                className="bg-black/50 border-red-900/50 focus:border-red-500 text-white"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="bilibili" className="text-gray-300">
+                <Video className="w-4 h-4 inline mr-1" />
+                B站
+              </Label>
+              <Input
+                id="bilibili"
+                value={profile.bilibili}
+                onChange={(e) => handleChange('bilibili', e.target.value)}
+                placeholder="B站UID或主页链接"
+                className="bg-black/50 border-red-900/50 focus:border-red-500 text-white"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="weixin" className="text-gray-300">
+                <MessageCircle className="w-4 h-4 inline mr-1" />
+                微信号 / 视频号
+              </Label>
+              <Input
+                id="weixin"
+                value={profile.weixin}
+                onChange={(e) => handleChange('weixin', e.target.value)}
+                placeholder="微信号或视频号名称"
+                className="bg-black/50 border-red-900/50 focus:border-red-500 text-white"
+              />
+            </div>
           </div>
         </div>
 

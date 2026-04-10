@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,7 +36,7 @@ interface Portfolio {
 const DEFAULT_PROFILE_DATA = {
   personalInfo: {
     name: '雷响',
-    title: 'AIGC 创作者 & 数字艺术家',
+    title: 'AIGC 运营主管 & AI 导演',
     avatar: '👨‍💻',
     location: '中国 · 北京',
     email: 'leo@example.com',
@@ -44,6 +44,10 @@ const DEFAULT_PROFILE_DATA = {
     github: '',
     twitter: '',
     linkedin: '',
+    douyin: '',
+    xiaohongshu: '',
+    bilibili: '',
+    weixin: '',
   },
   experiences: [
     {
@@ -98,6 +102,120 @@ const DEFAULT_PROFILE_DATA = {
     },
   ],
 };
+
+// ── Particle System with connection lines ──────────────────────────────────
+const PARTICLE_COUNT = 40;
+const CONNECTION_DISTANCE = 120; // px
+
+interface Particle {
+  id: number;
+  x: number; // percent
+  y: number; // percent
+  size: number;
+  color: string;
+  duration: number;
+  delay: number;
+  dx: number; // drift direction
+  dy: number;
+}
+
+const PARTICLE_COLORS = [
+  'bg-purple-400',
+  'bg-purple-500',
+  'bg-pink-400',
+  'bg-pink-500',
+  'bg-blue-400',
+  'bg-blue-500',
+];
+
+function generateParticles(): Particle[] {
+  return Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: 1 + Math.random() * 3,
+    color: PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)],
+    duration: 6 + Math.random() * 8,
+    delay: Math.random() * 5,
+    dx: (Math.random() - 0.5) * 60,
+    dy: (Math.random() - 0.5) * 60,
+  }));
+}
+
+function ParticleField() {
+  const particles = useMemo(() => generateParticles(), []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      {/* Particles */}
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className={`absolute rounded-full ${p.color}`}
+          style={{
+            width: p.size,
+            height: p.size,
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            opacity: 0.4 + Math.random() * 0.4,
+          }}
+          animate={{
+            x: [0, p.dx, 0],
+            y: [0, p.dy, 0],
+            opacity: [0.3, 0.8, 0.3],
+          }}
+          transition={{
+            duration: p.duration,
+            repeat: Infinity,
+            delay: p.delay,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+
+      {/* Connection lines – rendered as thin absolute divs for perf */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+        {particles.map((p, i) =>
+          particles.slice(i + 1).map((q) => {
+            const dist = Math.hypot(p.x - q.x, p.y - q.y);
+            if (dist < 20) {
+              // 20% of viewport ≈ CONNECTION_DISTANCE at typical sizes
+              const opacity = Math.max(0, 0.15 * (1 - dist / 20));
+              return (
+                <motion.line
+                  key={`${p.id}-${q.id}`}
+                  x1={`${p.x}%`}
+                  y1={`${p.y}%`}
+                  x2={`${q.x}%`}
+                  y2={`${q.y}%`}
+                  stroke="url(#lineGrad)"
+                  strokeWidth={0.5}
+                  strokeOpacity={opacity}
+                  animate={{
+                    strokeOpacity: [opacity * 0.5, opacity, opacity * 0.5],
+                  }}
+                  transition={{
+                    duration: 4 + Math.random() * 4,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                />
+              );
+            }
+            return null;
+          })
+        )}
+        <defs>
+          <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#a855f7" />
+            <stop offset="50%" stopColor="#ec4899" />
+            <stop offset="100%" stopColor="#3b82f6" />
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+  );
+}
 
 export default function Home() {
   const [isAIGreetingOpen, setIsAIGreetingOpen] = useState(false);
@@ -157,31 +275,10 @@ export default function Home() {
         style={{ opacity: heroOpacity, scale: heroScale }}
         className="relative min-h-screen flex items-center justify-center overflow-hidden"
       >
-        {/* Animated Background */}
+        {/* Animated Background with Particles + Connection Lines */}
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-pink-900/20" />
-          <div className="absolute inset-0">
-            {[...Array(8)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1 h-1 bg-purple-500 rounded-full"
-                initial={{
-                  x: `${Math.random() * 100}%`,
-                  y: `${Math.random() * 100}%`,
-                }}
-                animate={{
-                  y: [0, -100, 0],
-                  opacity: [0, 1, 0],
-                }}
-                transition={{
-                  duration: 4 + Math.random() * 2,
-                  repeat: Infinity,
-                  delay: Math.random() * 3,
-                  ease: "linear",
-                }}
-              />
-            ))}
-          </div>
+          <ParticleField />
         </div>
 
         {/* Hero Content */}
@@ -382,18 +479,19 @@ export default function Home() {
                 </div>
 
                 {/* 社交媒体链接 - 增强效果 */}
-                {(profileData.personalInfo.github || profileData.personalInfo.twitter || profileData.personalInfo.linkedin) && (
+                {(profileData.personalInfo.github || profileData.personalInfo.twitter || profileData.personalInfo.linkedin || profileData.personalInfo.douyin || profileData.personalInfo.xiaohongshu || profileData.personalInfo.bilibili || profileData.personalInfo.weixin) && (
                   <div className="mt-8">
                     <p className="text-sm text-muted-foreground mb-3 text-center relative">
                       社交媒体
                       <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
                     </p>
-                    <div className="flex justify-center gap-3">
+                    <div className="flex justify-center gap-3 flex-wrap">
                       {profileData.personalInfo.github && (
                         <Button 
                           size="icon" 
                           variant="outline" 
                           className="border-purple-500/30 hover:bg-purple-500/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
+                          onClick={() => window.open(profileData.personalInfo.github.startsWith('http') ? profileData.personalInfo.github : `https://github.com/${profileData.personalInfo.github}`, '_blank')}
                         >
                           <Github className="w-5 h-5 group-hover:scale-110 transition-transform" />
                         </Button>
@@ -403,6 +501,7 @@ export default function Home() {
                           size="icon" 
                           variant="outline" 
                           className="border-purple-500/30 hover:bg-purple-500/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
+                          onClick={() => window.open(profileData.personalInfo.twitter.startsWith('http') ? profileData.personalInfo.twitter : `https://twitter.com/${profileData.personalInfo.twitter}`, '_blank')}
                         >
                           <Twitter className="w-5 h-5 group-hover:scale-110 transition-transform" />
                         </Button>
@@ -412,8 +511,61 @@ export default function Home() {
                           size="icon" 
                           variant="outline" 
                           className="border-purple-500/30 hover:bg-purple-500/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
+                          onClick={() => window.open(profileData.personalInfo.linkedin.startsWith('http') ? profileData.personalInfo.linkedin : `https://linkedin.com/in/${profileData.personalInfo.linkedin}`, '_blank')}
                         >
                           <Linkedin className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        </Button>
+                      )}
+                      {profileData.personalInfo.douyin && (
+                        <Button 
+                          size="icon" 
+                          variant="outline" 
+                          className="border-purple-500/30 hover:bg-purple-500/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
+                          title="抖音"
+                          onClick={() => {
+                            const val = profileData.personalInfo.douyin;
+                            if (val.startsWith('http')) window.open(val, '_blank');
+                          }}
+                        >
+                          <span className="text-lg">🎵</span>
+                        </Button>
+                      )}
+                      {profileData.personalInfo.xiaohongshu && (
+                        <Button 
+                          size="icon" 
+                          variant="outline" 
+                          className="border-purple-500/30 hover:bg-purple-500/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
+                          title="小红书"
+                          onClick={() => {
+                            const val = profileData.personalInfo.xiaohongshu;
+                            if (val.startsWith('http')) window.open(val, '_blank');
+                          }}
+                        >
+                          <span className="text-lg">📕</span>
+                        </Button>
+                      )}
+                      {profileData.personalInfo.bilibili && (
+                        <Button 
+                          size="icon" 
+                          variant="outline" 
+                          className="border-purple-500/30 hover:bg-purple-500/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
+                          title="B站"
+                          onClick={() => {
+                            const val = profileData.personalInfo.bilibili;
+                            if (val.startsWith('http')) window.open(val, '_blank');
+                          }}
+                        >
+                          <span className="text-lg">📺</span>
+                        </Button>
+                      )}
+                      {profileData.personalInfo.weixin && (
+                        <Button 
+                          size="icon" 
+                          variant="outline" 
+                          className="border-purple-500/30 hover:bg-purple-500/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
+                          title={`微信: ${profileData.personalInfo.weixin}`}
+                        >
+                          <span className="text-lg">💬</span>
                         </Button>
                       )}
                     </div>
@@ -657,7 +809,7 @@ export default function Home() {
                   关于我
                 </h2>
                 <p className="text-xl text-muted-foreground">
-                  AIGC 创作者 & 数字艺术家
+                  AIGC 运营主管 & AI 导演
                 </p>
               </div>
               

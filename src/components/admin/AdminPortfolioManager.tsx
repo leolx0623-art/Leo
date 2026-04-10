@@ -30,6 +30,12 @@ interface PortfolioItem {
   description: string;
   category: string;
   imageUrl: string;
+  videoUrl?: string;
+  websiteUrl?: string;
+  tags?: string;
+  viewCount?: number;
+  featured?: boolean;
+  sort?: number;
   link?: string;
   createdAt: string;
 }
@@ -48,6 +54,11 @@ export default function AdminPortfolioManager() {
     description: '',
     category: 'web',
     imageUrl: '',
+    videoUrl: '',
+    websiteUrl: '',
+    tags: '',
+    featured: false,
+    sort: 0,
     link: '',
   });
 
@@ -78,6 +89,11 @@ export default function AdminPortfolioManager() {
       description: '',
       category: 'web',
       imageUrl: '',
+      videoUrl: '',
+      websiteUrl: '',
+      tags: '',
+      featured: false,
+      sort: 0,
       link: '',
     });
     setIsDialogOpen(true);
@@ -90,6 +106,11 @@ export default function AdminPortfolioManager() {
       description: work.description,
       category: work.category,
       imageUrl: work.imageUrl,
+      videoUrl: work.videoUrl || '',
+      websiteUrl: work.websiteUrl || '',
+      tags: work.tags || '',
+      featured: work.featured || false,
+      sort: work.sort || 0,
       link: work.link || '',
     });
     setIsDialogOpen(true);
@@ -365,6 +386,53 @@ export default function AdminPortfolioManager() {
                   placeholder="https://example.com"
                   className="bg-black/50 border-red-900/50 focus:border-red-500 text-white"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tags" className="text-gray-300">
+                  标签（JSON数组格式，如 ["AIGC","视频","AI导演"]）
+                </Label>
+                <Input
+                  id="tags"
+                  value={formData.tags}
+                  onChange={(e) =>
+                    setFormData({ ...formData, tags: e.target.value })
+                  }
+                  placeholder='["AIGC","视频"]'
+                  className="bg-black/50 border-red-900/50 focus:border-red-500 text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="sort" className="text-gray-300">
+                    排序权重
+                  </Label>
+                  <Input
+                    id="sort"
+                    type="number"
+                    value={formData.sort}
+                    onChange={(e) =>
+                      setFormData({ ...formData, sort: parseInt(e.target.value) || 0 })
+                    }
+                    placeholder="0"
+                    className="bg-black/50 border-red-900/50 focus:border-red-500 text-white"
+                  />
+                </div>
+                <div className="space-y-2 flex items-center gap-3 pt-6">
+                  <input
+                    id="featured"
+                    type="checkbox"
+                    checked={formData.featured}
+                    onChange={(e) =>
+                      setFormData({ ...formData, featured: e.target.checked })
+                    }
+                    className="w-4 h-4 accent-red-500"
+                  />
+                  <Label htmlFor="featured" className="text-gray-300">
+                    精选作品
+                  </Label>
+                </div>
               </div>
 
               <DialogFooter>

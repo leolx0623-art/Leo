@@ -1,40 +1,60 @@
 import type { Metadata } from 'next';
 import { Inspector } from 'react-dev-inspector';
 import { ThemeProvider } from 'next-themes';
+import { Suspense } from 'react';
+import { Loading } from '@/components/loading';
+import { LayoutWrapper } from '@/components/layout-wrapper';
 import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'AIGC 创作者作品集',
-    template: '%s | AIGC 创作者作品集',
+    default: '雷响 | AIGC创作者 & AI导演',
+    template: '%s | 雷响',
   },
-  description: 'AIGC 创作者的高性能个人网站，展示沉浸式作品集和个性化 AI 数字分身。',
+  description:
+    '雷响 - AIGC创作者与AI导演，专注于AI生成内容创作。探索AI图像生成、AI视频制作、数字艺术和创意表达的无限可能。使用Midjourney、Stable Diffusion、Runway ML等前沿AI工具。',
   keywords: [
+    '雷响',
     'AIGC',
-    'AI 生成内容',
+    'AIGC创作者',
+    'AI导演',
+    'AI生成内容',
     '数字艺术',
-    'AI 艺术',
+    'AI艺术',
     '作品集',
-    'AI 创作者',
     'Midjourney',
     'Stable Diffusion',
     'Runway ML',
+    'AI视频',
     '数字分身',
-    'AI 聊天',
+    'AI聊天',
+    'AI创作',
+    '创意设计',
+    '视觉艺术',
   ],
-  authors: [{ name: 'AIGC 创作者' }],
+  authors: [{ name: '雷响' }],
   openGraph: {
-    title: 'AIGC 创作者作品集 - AI 驱动创意',
-    description: '探索 AI 生成的艺术、视频、音频和创意写作。与我的 AI 数字分身聊天！',
+    title: '雷响 | AIGC创作者 & AI导演',
+    description:
+      '探索AI生成的艺术、视频、音频和创意写作的无限可能。与我的AI数字分身聊天，了解AIGC创作的前沿实践。',
     url: 'https://aigccreator.com',
-    siteName: 'AIGC 创作者作品集',
+    siteName: '雷响 - AIGC创作者',
     locale: 'zh_CN',
     type: 'website',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: '雷响 | AIGC创作者 & AI导演',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AIGC 创作者作品集',
-    description: '探索 AI 生成创意的边界',
+    title: '雷响 | AIGC创作者 & AI导演',
+    description: '探索AI生成的艺术、视频、音频和创意写作的无限可能',
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,
@@ -59,7 +79,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <Suspense fallback={<Loading />}>
+            <LayoutWrapper>{children}</LayoutWrapper>
+          </Suspense>
         </ThemeProvider>
       </body>
     </html>
