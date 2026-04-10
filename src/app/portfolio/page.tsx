@@ -127,7 +127,7 @@ function SortablePortfolioCard({
                 {portfolio.title}
               </p>
               <p className="text-white/60 text-xs mt-2 truncate max-w-full">
-                {portfolio.websiteUrl.replace(/^https?:\/\/\//, '')}
+                {portfolio.websiteUrl.replace(/^https?:\/\//, '')}
               </p>
             </div>
           )}

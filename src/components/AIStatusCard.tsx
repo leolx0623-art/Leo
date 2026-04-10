@@ -34,6 +34,10 @@ export function AIStatusCard() {
       setError(false);
       const method = usePost ? 'POST' : 'GET';
       const response = await fetch('/api/status', { method });
+      if (!response.ok) {
+        console.error('获取状态失败:', response.status);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
       setStatus(data);
     } catch (err) {

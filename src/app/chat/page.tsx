@@ -26,7 +26,7 @@ export default function ChatPage() {
       id: '1',
       role: 'assistant',
       content: "嘿，我是Leo！🎨 作为AIGC运营主管、AI导演，还有各种AI创作者的身份，我用AI工具玩出了各种花样——从央视合作的宣传片到AIGC短剧，从AI数字人到自媒体运营，这些项目我都做过。你想了解我的作品、合作方式，还是想聊聊AI技术？尽管问，我来给你点实在的！",
-      timestamp: new Date(),
+      timestamp: new Date(0), // 使用固定时间避免 SSR hydration mismatch
     },
   ]);
   const [input, setInput] = useState('');
@@ -35,6 +35,15 @@ export default function ChatPage() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const isFirstLoad = useRef(true);
   const initialMessageCount = useRef(1); // 初始有1条消息
+
+  // 客户端 mount 后修正初始消息的时间戳
+  useEffect(() => {
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === '1' ? { ...msg, timestamp: new Date() } : msg
+      )
+    );
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -108,13 +117,15 @@ export default function ChatPage() {
       let portfolioCards: PortfolioCardData[] = [];
       let imageUrl: string | undefined;
       let imagePrompt: string | undefined;
+      let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep the last incomplete line in the buffer
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
@@ -131,7 +142,7 @@ export default function ChatPage() {
                   const newMessages = [...prev];
                   const lastMessage = newMessages[newMessages.length - 1];
                   if (lastMessage && lastMessage.role === 'assistant') {
-                    lastMessage.content = assistantMessage;
+                    newMessages[newMessages.length - 1] = { ...lastMessage, content: assistantMessage };
                   }
                   return newMessages;
                 });
@@ -144,7 +155,7 @@ export default function ChatPage() {
                   const newMessages = [...prev];
                   const lastMessage = newMessages[newMessages.length - 1];
                   if (lastMessage && lastMessage.role === 'assistant') {
-                    lastMessage.portfolioCards = portfolioCards;
+                    newMessages[newMessages.length - 1] = { ...lastMessage, portfolioCards };
                   }
                   return newMessages;
                 });
@@ -158,8 +169,7 @@ export default function ChatPage() {
                   const newMessages = [...prev];
                   const lastMessage = newMessages[newMessages.length - 1];
                   if (lastMessage && lastMessage.role === 'assistant') {
-                    lastMessage.imageUrl = imageUrl;
-                    lastMessage.imagePrompt = imagePrompt;
+                    newMessages[newMessages.length - 1] = { ...lastMessage, imageUrl, imagePrompt };
                   }
                   return newMessages;
                 });
@@ -176,7 +186,7 @@ export default function ChatPage() {
         const newMessages = [...prev];
         const lastMessage = newMessages[newMessages.length - 1];
         if (lastMessage && lastMessage.role === 'assistant') {
-          lastMessage.content = '抱歉，我遇到了一个错误。请稍后再试。';
+          newMessages[newMessages.length - 1] = { ...lastMessage, content: '抱歉，我遇到了一个错误。请稍后再试。' };
         }
         return newMessages;
       });

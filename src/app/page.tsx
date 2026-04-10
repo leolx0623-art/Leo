@@ -150,7 +150,16 @@ function generateParticles(): Particle[] {
 }
 
 function ParticleField() {
+  const [mounted, setMounted] = useState(false);
   const particles = useMemo(() => generateParticles(), []);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="absolute inset-0 overflow-hidden" />;
+  }
 
   return (
     <div className="absolute inset-0 overflow-hidden">
@@ -250,12 +259,16 @@ export default function Home() {
   const fetchPortfolios = async () => {
     try {
       const response = await fetch('/api/portfolios');
+      if (!response.ok) {
+        console.error('获取作品集失败:', response.status, response.statusText);
+        return;
+      }
       const data = await response.json();
-      // 确保data是数组（API可能在DB不可用时返回错误对象）
-      setPortfolios(Array.isArray(data) ? data : []);
+      if (Array.isArray(data)) {
+        setPortfolios(data);
+      }
     } catch (error) {
       console.error('获取作品集失败:', error);
-      setPortfolios([]);
     } finally {
       setLoading(false);
     }

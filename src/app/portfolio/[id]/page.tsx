@@ -150,7 +150,7 @@ export default function PortfolioDetailPage() {
           {/* 媒体内容 */}
           <Card className="border-purple-500/20 shadow-2xl shadow-purple-500/10 overflow-hidden mb-8">
             <CardContent className="p-0">
-              <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
+              <div className="relative aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
                 {/* 优先级1: 图片 */}
                 {portfolio.imageUrl && (
                   <Image

@@ -145,17 +145,7 @@ interface QuoteState {
 }
 
 export function MoodInteraction() {
-  const [currentMood, setCurrentMood] = useState<MoodType>(() => {
-    if (typeof window === 'undefined') return 'happy';
-    try {
-      const cached = localStorage.getItem(MOOD_CACHE_KEY);
-      if (cached) {
-        const state: MoodState = JSON.parse(cached);
-        if (Date.now() - state.timestamp < MOOD_CACHE_DURATION) return state.mood;
-      }
-    } catch { /* ignore */ }
-    return 'happy';
-  });
+  const [currentMood, setCurrentMood] = useState<MoodType>('happy');
   const [quote, setQuote] = useState('今天也要元气满满哦~');
 
   // 随机更换心情
@@ -176,6 +166,10 @@ export function MoodInteraction() {
   async function updateQuote() {
     try {
       const response = await fetch('/api/status');
+      if (!response.ok) {
+        console.error('获取状态失败:', response.status);
+        return;
+      }
       const data = await response.json();
 
       if (data.moodQuote) {
@@ -233,7 +227,10 @@ export function MoodInteraction() {
     updateQuote();
   }
 
-
+  useEffect(() => {
+    loadMoodFromCache();
+    loadQuoteFromCache();
+  }, []);
 
   const moodConfig = MOOD_CONFIG[currentMood];
 
@@ -261,7 +258,7 @@ export function MoodInteraction() {
         animate={{ opacity: 1 }}
         className="text-sm text-muted-foreground italic"
       >
-        &ldquo;{quote}&rdquo;
+        "{quote}"
       </motion.p>
     </motion.div>
   );

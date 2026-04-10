@@ -217,7 +217,16 @@ async function generateImage(prompt: string): Promise<string | null> {
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, conversationHistory } = await request.json();
+    const body = await request.json();
+    const { message, conversationHistory } = body;
+
+    // 验证必填字段
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return NextResponse.json(
+        { error: '消息不能为空' },
+        { status: 400 }
+      );
+    }
 
     console.log('📥 收到用户消息:', message);
 

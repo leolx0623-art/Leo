@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
+// HTML 转义函数，防止 XSS
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // 邮件发送接口
 export async function POST(request: NextRequest) {
   try {
@@ -66,22 +76,22 @@ export async function POST(request: NextRequest) {
             <div style="margin: 20px 0;">
               <p style="margin: 10px 0; color: #666;">
                 <strong>姓名：</strong>
-                <span style="color: #333; background-color: #f3f4f6; padding: 4px 8px; border-radius: 4px;">${name}</span>
+                <span style="color: #333; background-color: #f3f4f6; padding: 4px 8px; border-radius: 4px;">${escapeHtml(name)}</span>
               </p>
               <p style="margin: 10px 0; color: #666;">
                 <strong>邮箱：</strong>
-                <a href="mailto:${email}" style="color: #8b5cf6; text-decoration: none;">${email}</a>
+                <a href="mailto:${escapeHtml(email)}" style="color: #8b5cf6; text-decoration: none;">${escapeHtml(email)}</a>
               </p>
               <p style="margin: 10px 0; color: #666;">
                 <strong>主题：</strong>
-                <span style="color: #333;">${subject}</span>
+                <span style="color: #333;">${escapeHtml(subject)}</span>
               </p>
             </div>
             
             <div style="margin: 20px 0;">
               <p style="margin: 10px 0; color: #666;"><strong>留言内容：</strong></p>
               <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; border-left: 4px solid #8b5cf6; color: #333; line-height: 1.6;">
-                ${message.replace(/\n/g, '<br>')}
+                ${escapeHtml(message).replace(/\n/g, '<br>')}
               </div>
             </div>
             
