@@ -128,18 +128,24 @@ const PARTICLE_COLORS = [
   'bg-blue-500',
 ];
 
+// 使用确定性种子随机数，确保SSR和客户端渲染一致
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed * 9301 + 49297) * 233280;
+  return x - Math.floor(x);
+}
+
 function generateParticles(): Particle[] {
   return Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
     id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: 1 + Math.random() * 3,
-    color: PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)],
-    duration: 6 + Math.random() * 8,
-    delay: Math.random() * 5,
-    dx: (Math.random() - 0.5) * 60,
-    dy: (Math.random() - 0.5) * 60,
-    opacity: 0.4 + Math.random() * 0.4,
+    x: seededRandom(i * 7 + 1) * 100,
+    y: seededRandom(i * 13 + 2) * 100,
+    size: 1 + seededRandom(i * 17 + 3) * 3,
+    color: PARTICLE_COLORS[Math.floor(seededRandom(i * 23 + 4) * PARTICLE_COLORS.length)],
+    duration: 6 + seededRandom(i * 29 + 5) * 8,
+    delay: seededRandom(i * 31 + 6) * 5,
+    dx: (seededRandom(i * 37 + 7) - 0.5) * 60,
+    dy: (seededRandom(i * 41 + 8) - 0.5) * 60,
+    opacity: 0.4 + seededRandom(i * 43 + 9) * 0.4,
   }));
 }
 
@@ -196,7 +202,7 @@ function ParticleField() {
                     strokeOpacity: [opacity * 0.5, opacity, opacity * 0.5],
                   }}
                   transition={{
-                    duration: 4 + Math.random() * 4,
+                    duration: 4 + seededRandom(p.id * 53 + q.id * 59) * 4,
                     repeat: Infinity,
                     ease: 'easeInOut',
                   }}
