@@ -104,7 +104,7 @@ const DEFAULT_PROFILE_DATA = {
 };
 
 // ── Particle System with connection lines ──────────────────────────────────
-const PARTICLE_COUNT = 40;
+const PARTICLE_COUNT = 15;
 
 interface Particle {
   id: number;
@@ -180,38 +180,38 @@ function ParticleField() {
         />
       ))}
 
-      {/* Connection lines – rendered as thin absolute divs for perf */}
+      {/* Connection lines – limited count to prevent stack overflow */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-        {particles.map((p, i) =>
-          particles.slice(i + 1).map((q) => {
-            const dist = Math.hypot(p.x - q.x, p.y - q.y);
-            if (dist < 20) {
-              // 20% of viewport ≈ CONNECTION_DISTANCE at typical sizes
-              const opacity = Math.max(0, 0.15 * (1 - dist / 20));
-              return (
-                <motion.line
-                  key={`${p.id}-${q.id}`}
-                  x1={`${p.x}%`}
-                  y1={`${p.y}%`}
-                  x2={`${q.x}%`}
-                  y2={`${q.y}%`}
-                  stroke="url(#lineGrad)"
-                  strokeWidth={0.5}
-                  strokeOpacity={opacity}
-                  animate={{
-                    strokeOpacity: [opacity * 0.5, opacity, opacity * 0.5],
-                  }}
-                  transition={{
-                    duration: 4 + seededRandom(p.id * 53 + q.id * 59) * 4,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                />
-              );
+        {(() => {
+          const lines: { key: string; x1: string; y1: string; x2: string; y2: string; opacity: number; dur: number }[] = [];
+          for (let i = 0; i < particles.length && lines.length < 30; i++) {
+            for (let j = i + 1; j < particles.length && lines.length < 30; j++) {
+              const p = particles[i], q = particles[j];
+              const dist = Math.hypot(p.x - q.x, p.y - q.y);
+              if (dist < 15) {
+                const opacity = Math.max(0, 0.15 * (1 - dist / 15));
+                lines.push({
+                  key: `${p.id}-${q.id}`,
+                  x1: `${p.x}%`, y1: `${p.y}%`,
+                  x2: `${q.x}%`, y2: `${q.y}%`,
+                  opacity,
+                  dur: 4 + seededRandom(p.id * 53 + q.id * 59) * 4,
+                });
+              }
             }
-            return null;
-          })
-        )}
+          }
+          return lines.map((l) => (
+            <motion.line
+              key={l.key}
+              x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
+              stroke="url(#lineGrad)"
+              strokeWidth={0.5}
+              strokeOpacity={l.opacity}
+              animate={{ strokeOpacity: [l.opacity * 0.5, l.opacity, l.opacity * 0.5] }}
+              transition={{ duration: l.dur, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          ));
+        })()}
         <defs>
           <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#a855f7" />
