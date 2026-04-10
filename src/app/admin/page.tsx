@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Lock, User, Key, LayoutDashboard, FileText, Image, Settings } from 'lucide-react';
+import { Lock, User, Key, LayoutDashboard, Image, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -157,6 +157,7 @@ export default function AdminPage() {
               value="portfolio"
               className="data-[state=active]:bg-red-600 data-[state=active]:text-white"
             >
+              {/* eslint-disable-next-line jsx-a11y/alt-text */}
               <Image className="w-4 h-4 mr-2" />
               作品集管理
             </TabsTrigger>

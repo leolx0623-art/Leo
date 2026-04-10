@@ -20,7 +20,8 @@ interface StatusResponse {
 export function AIStatusCard() {
   const [status, setStatus] = useState<StatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_error, setError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {

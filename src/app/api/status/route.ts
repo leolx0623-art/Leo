@@ -186,7 +186,8 @@ async function generateMoodQuote(): Promise<string> {
   }
 }
 
-export async function GET(request: NextRequest) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function GET(_request: NextRequest) {
   try {
     // 并行获取天气和心情信息
     const [weather, moodQuote] = await Promise.all([
@@ -217,7 +218,8 @@ export async function GET(request: NextRequest) {
 }
 
 // POST 方法：清除缓存并重新获取数据
-export async function POST(request: NextRequest) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function POST(_request: NextRequest) {
   try {
     // 清除缓存
     weatherCache = null;

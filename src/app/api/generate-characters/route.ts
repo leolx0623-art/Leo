@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ImageGenerationClient, Config } from 'coze-coding-dev-sdk';
 
 // 缓存配置
-const CHARACTERS_CACHE_KEY = 'characters_images_cache';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _CHARACTERS_CACHE_KEY = 'characters_images_cache';
 const CHARACTERS_CACHE_DURATION = 30 * 24 * 60 * 60 * 1000; // 30天
 
 interface CharacterImage {
@@ -14,7 +15,8 @@ interface CharacterImage {
 // 全局缓存
 let charactersCache: CharacterImage | null = null;
 
-export async function POST(request: NextRequest) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function POST(_request: NextRequest) {
   try {
     const now = Date.now();
 
@@ -81,7 +83,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function GET(_request: NextRequest) {
   // GET 请求返回缓存数据或默认数据
   const now = Date.now();
 

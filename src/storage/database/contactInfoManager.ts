@@ -59,7 +59,8 @@ export class ContactInfoManager {
   }
 
   // 获取简历下载链接
-  async getResumeDownloadUrl(resumeKey: string): Promise<string | null> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async getResumeDownloadUrl(_resumeKey: string): Promise<string | null> {
     // TODO: 使用 S3 SDK 生成签名 URL
     return null;
   }

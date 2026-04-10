@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { User, MapPin, Github, Linkedin, Mail, Save, RefreshCw, Music, Video, MessageCircle, BookOpen } from 'lucide-react';
+import Image from 'next/image';
 
 interface ProfileData {
   name: string;
@@ -209,12 +210,14 @@ export default function AdminProfileManager() {
             {profile.avatar && (
               <div className="mt-2">
                 <p className="text-sm text-gray-400 mb-2">头像预览：</p>
-                <img
+                <Image
                   src={profile.avatar}
                   alt="头像预览"
+                  width={80}
+                  height={80}
                   className="w-20 h-20 rounded-full object-cover border-2 border-red-500"
                   onError={(e) => {
-                    e.currentTarget.style.display = 'none';
+                    (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
               </div>

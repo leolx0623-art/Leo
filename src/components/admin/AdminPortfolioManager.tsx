@@ -20,9 +20,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Image, Plus, Pencil, Trash2, Save, RefreshCw, X } from 'lucide-react';
+import NextImage from 'next/image';
 
 interface PortfolioItem {
   id: string;
@@ -190,7 +190,8 @@ export default function AdminPortfolioManager() {
     <Card className="border-red-900/50 bg-black/60 backdrop-blur-xl">
       <CardHeader>
         <CardTitle className="text-xl text-red-500 flex items-center gap-2">
-          <Image className="w-5 h-5" />
+          {/* eslint-disable-next-line jsx-a11y/alt-text */}
+          <Image className="w-5 h-5" aria-hidden="true" />
           作品集管理
         </CardTitle>
         <CardDescription className="text-gray-400">
@@ -215,7 +216,8 @@ export default function AdminPortfolioManager() {
         {/* 作品列表 */}
         {works.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
-            <Image className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            {/* eslint-disable-next-line jsx-a11y/alt-text */}
+            <Image className="w-12 h-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
             <p>暂无作品，点击「添加作品」开始创建</p>
           </div>
         ) : (
@@ -228,10 +230,11 @@ export default function AdminPortfolioManager() {
                 {/* 作品图片 */}
                 {work.imageUrl && (
                   <div className="aspect-video w-full bg-black/60">
-                    <img
+                    <NextImage
                       src={work.imageUrl}
                       alt={work.title}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                   </div>
                 )}
@@ -361,12 +364,14 @@ export default function AdminPortfolioManager() {
                 />
                 {formData.imageUrl && (
                   <div className="mt-2">
-                    <img
+                    <NextImage
                       src={formData.imageUrl}
                       alt="预览"
+                      width={300}
+                      height={128}
                       className="w-full h-32 object-cover rounded border border-red-900/30"
                       onError={(e) => {
-                        e.currentTarget.style.display = 'none';
+                        (e.target as HTMLImageElement).style.display = 'none';
                       }}
                     />
                   </div>
@@ -390,7 +395,7 @@ export default function AdminPortfolioManager() {
 
               <div className="space-y-2">
                 <Label htmlFor="tags" className="text-gray-300">
-                  标签（JSON数组格式，如 ["AIGC","视频","AI导演"]）
+                  标签（JSON数组格式，如 [&quot;AIGC&quot;,&quot;视频&quot;,&quot;AI导演&quot;]）
                 </Label>
                 <Input
                   id="tags"

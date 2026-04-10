@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Navigation } from '@/components/navigation';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { ProfileEditor } from '@/components/profile-editor';
 import { ScrollIndicator } from '@/components/scroll-indicator';
 import { AIStatusCard } from '@/components/AIStatusCard';
-import { ArrowRight, Sparkles, Bot, Play, Link2, Film, Image as ImageIcon, Music, Package, Mail, MapPin, Phone, Github, Twitter, Linkedin, Award, Code, Palette, Video, Zap, Edit } from 'lucide-react';
+import { ArrowRight, Sparkles, Bot, Link2, Film, Image as ImageIcon, Music, Package, Mail, MapPin, Phone, Github, Twitter, Linkedin, Award, Zap, Edit } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // 分类配置
 const CATEGORY_CONFIG = {
@@ -105,7 +105,6 @@ const DEFAULT_PROFILE_DATA = {
 
 // ── Particle System with connection lines ──────────────────────────────────
 const PARTICLE_COUNT = 40;
-const CONNECTION_DISTANCE = 120; // px
 
 interface Particle {
   id: number;
@@ -117,6 +116,7 @@ interface Particle {
   delay: number;
   dx: number; // drift direction
   dy: number;
+  opacity: number;
 }
 
 const PARTICLE_COLORS = [
@@ -139,6 +139,7 @@ function generateParticles(): Particle[] {
     delay: Math.random() * 5,
     dx: (Math.random() - 0.5) * 60,
     dy: (Math.random() - 0.5) * 60,
+    opacity: 0.4 + Math.random() * 0.4,
   }));
 }
 
@@ -157,7 +158,7 @@ function ParticleField() {
             height: p.size,
             left: `${p.x}%`,
             top: `${p.y}%`,
-            opacity: 0.4 + Math.random() * 0.4,
+            opacity: p.opacity,
           }}
           animate={{
             x: [0, p.dx, 0],
@@ -611,7 +612,7 @@ export default function Home() {
                 </CardHeader>
                 <CardContent className="p-6 relative">
                   <div className="space-y-6">
-                    {profileData.experiences.map((exp, index) => (
+                    {profileData.experiences.map((exp) => (
                       <div key={exp.id} className="relative pl-6 border-l-2 border-blue-500/30 group">
                         {/* 时间轴节点 - 增强发光效果 */}
                         <div className="absolute left-0 top-0 -translate-x-1.5 w-3 h-3 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50 group-hover:scale-125 transition-transform duration-300" />
@@ -720,10 +721,11 @@ export default function Home() {
                       <div className="relative aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center overflow-hidden">
                         {/* 显示第一个作品的预览图 */}
                         {firstPortfolio?.imageUrl && (
-                          <img
+                          <Image
                             src={firstPortfolio.imageUrl}
                             alt={firstPortfolio.title}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform duration-500"
                           />
                         )}
                         {firstPortfolio?.videoUrl && !firstPortfolio.imageUrl && (

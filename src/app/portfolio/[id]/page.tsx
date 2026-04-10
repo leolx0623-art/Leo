@@ -6,7 +6,8 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Navigation } from '@/components/navigation';
-import { ArrowLeft, Play, ExternalLink, Link2, Calendar, Tag } from 'lucide-react';
+import { ArrowLeft, Play, ExternalLink, Link2, Calendar } from 'lucide-react';
+import Image from 'next/image';
 
 interface Portfolio {
   id: string;
@@ -152,9 +153,10 @@ export default function PortfolioDetailPage() {
               <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
                 {/* 优先级1: 图片 */}
                 {portfolio.imageUrl && (
-                  <img
+                  <Image
                     src={portfolio.imageUrl}
                     alt={portfolio.title}
+                    fill
                     className="w-full h-full object-cover"
                   />
                 )}

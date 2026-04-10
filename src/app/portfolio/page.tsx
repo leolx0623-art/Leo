@@ -2,10 +2,9 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   DndContext,
-  closestCenter,
   pointerWithin,
   KeyboardSensor,
   PointerSensor,
@@ -36,7 +35,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Navigation } from '@/components/navigation';
-import { Plus, Edit2, Trash2, Upload, X, Play, ExternalLink, Link2, Filter, GripVertical } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Play, ExternalLink, Link2, GripVertical } from 'lucide-react';
+import Image from 'next/image';
 
 // 分类常量
 const CATEGORIES = [
@@ -101,9 +101,10 @@ function SortablePortfolioCard({
 
           {/* 优先级1: 图片预览 */}
           {portfolio.imageUrl && (
-            <img
+            <Image
               src={portfolio.imageUrl}
               alt={portfolio.title}
+              fill
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
             />
           )}
@@ -287,6 +288,7 @@ function PortfolioContent() {
   // 加载作品集
   useEffect(() => {
     fetchPortfolios();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
 
   const fetchPortfolios = async () => {
@@ -570,9 +572,11 @@ function PortfolioContent() {
                   />
                   {portfolioFormData.imageUrl && (
                     <div className="relative">
-                      <img
+                      <Image
                         src={portfolioFormData.imageUrl}
                         alt="预览"
+                        width={300}
+                        height={192}
                         className="w-full h-48 object-cover rounded-lg"
                       />
                       <Button

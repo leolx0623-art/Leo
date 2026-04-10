@@ -4,10 +4,11 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Navigation } from '@/components/navigation';
 import { PortfolioCard, PortfolioCardData } from '@/components/portfolio-card';
 import { Send, Sparkles, User } from 'lucide-react';
+import Image from 'next/image';
 
 interface Message {
   id: string;
@@ -163,13 +164,13 @@ export default function ChatPage() {
                   return newMessages;
                 });
               }
-            } catch (e) {
+            } catch {
               // Skip invalid JSON
             }
           }
         }
       }
-    } catch (error) {
+    } catch {
       // Update the placeholder message with error
       setMessages((prev) => {
         const newMessages = [...prev];
@@ -242,15 +243,17 @@ export default function ChatPage() {
                         {/* 附加的图片 */}
                         {message.imageUrl && (
                           <div className="mt-3">
-                            <img
+                            <Image
                               src={message.imageUrl}
                               alt={message.imagePrompt || 'Generated image'}
+                              width={400}
+                              height={400}
                               className="rounded-lg max-w-full h-auto"
                               style={{ maxHeight: '400px' }}
                             />
                             {message.imagePrompt && (
                               <p className="text-xs text-muted-foreground mt-2 italic">
-                                "{message.imagePrompt}"
+                                &quot;{message.imagePrompt}&quot;
                               </p>
                             )}
                           </div>

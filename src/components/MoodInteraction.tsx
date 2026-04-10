@@ -126,29 +126,40 @@ export function MoodInteraction() {
   const [quote, setQuote] = useState('创意无限，探索不止');
   const [isInteracting, setIsInteracting] = useState(false);
 
-  // 从缓存加载心情状态
-  useEffect(() => {
-    loadMoodFromCache();
-    loadQuoteFromCache();
-  }, []);
+  // 更新心情
+  function updateMood() {
+    const randomIndex = Math.floor(Math.random() * ALL_MOODS.length);
+    const newMood = ALL_MOODS[randomIndex];
+    setCurrentMood(newMood);
 
-  // 定时更新心情（每6小时）
-  useEffect(() => {
-    const interval = setInterval(() => {
-      updateMood();
-    }, MOOD_CACHE_DURATION);
+    // 保存到缓存
+    const state: MoodState = {
+      mood: newMood,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(MOOD_CACHE_KEY, JSON.stringify(state));
+  }
 
-    return () => clearInterval(interval);
-  }, []);
+  // 更新座右铭
+  async function updateQuote() {
+    try {
+      const response = await fetch('/api/status');
+      const data = await response.json();
 
-  // 定时更新座右铭（每天）
-  useEffect(() => {
-    const interval = setInterval(() => {
-      updateQuote();
-    }, QUOTE_CACHE_DURATION);
+      if (data.moodQuote) {
+        setQuote(data.moodQuote);
 
-    return () => clearInterval(interval);
-  }, []);
+        // 保存到缓存
+        const state: QuoteState = {
+          quote: data.moodQuote,
+          timestamp: Date.now(),
+        };
+        localStorage.setItem(QUOTE_CACHE_KEY, JSON.stringify(state));
+      }
+    } catch (error) {
+      console.error('更新座右铭失败:', error);
+    }
+  }
 
   // 加载缓存的心情
   function loadMoodFromCache() {
@@ -194,40 +205,33 @@ export function MoodInteraction() {
     updateQuote();
   }
 
-  // 更新心情
-  function updateMood() {
-    const randomIndex = Math.floor(Math.random() * ALL_MOODS.length);
-    const newMood = ALL_MOODS[randomIndex];
-    setCurrentMood(newMood);
-
-    // 保存到缓存
-    const state: MoodState = {
-      mood: newMood,
-      timestamp: Date.now(),
+  // 从缓存加载心情状态
+  useEffect(() => {
+    const initFromCache = () => {
+      loadMoodFromCache();
+      loadQuoteFromCache();
     };
-    localStorage.setItem(MOOD_CACHE_KEY, JSON.stringify(state));
-  };
+    initFromCache();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // 更新座右铭
-  async function updateQuote() {
-    try {
-      const response = await fetch('/api/status');
-      const data = await response.json();
+  // 定时更新心情（每6小时）
+  useEffect(() => {
+    const interval = setInterval(() => {
+      updateMood();
+    }, MOOD_CACHE_DURATION);
 
-      if (data.moodQuote) {
-        setQuote(data.moodQuote);
+    return () => clearInterval(interval);
+  }, []);
 
-        // 保存到缓存
-        const state: QuoteState = {
-          quote: data.moodQuote,
-          timestamp: Date.now(),
-        };
-        localStorage.setItem(QUOTE_CACHE_KEY, JSON.stringify(state));
-      }
-    } catch (error) {
-      console.error('更新座右铭失败:', error);
-    }
-  }
+  // 定时更新座右铭（每天）
+  useEffect(() => {
+    const interval = setInterval(() => {
+      updateQuote();
+    }, QUOTE_CACHE_DURATION);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // 点击切换心情
   const handleClick = () => {

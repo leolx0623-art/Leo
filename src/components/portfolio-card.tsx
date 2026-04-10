@@ -2,7 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
-import { ExternalLink, Play, Link2, ArrowRight } from 'lucide-react';
+import { Play, Link2, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 import { Button } from './ui/button';
 import { useRouter } from 'next/navigation';
 
@@ -50,9 +51,11 @@ export function PortfolioCard({ portfolio }: PortfolioCardProps) {
           {/* Image preview with enhanced hover */}
           <div className="w-24 h-24 flex-shrink-0 bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center overflow-hidden relative">
             {portfolio.imageUrl ? (
-              <img
+              <Image
                 src={portfolio.imageUrl}
                 alt={portfolio.title}
+                width={96}
+                height={96}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
             ) : portfolio.videoUrl ? (
