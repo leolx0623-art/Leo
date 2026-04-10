@@ -8,34 +8,44 @@ import {
   UpdateContactInfo,
 } from "./shared/schema"
 
-// 创建数据库连接池
-const pool = new Pool({
-  host: process.env.COZE_DB_HOST || process.env.PGHOST,
-  port: parseInt(process.env.PGPORT || "5432"),
-  user: process.env.PGUSER || process.env.COZE_DB_USER,
-  password: process.env.PGPASSWORD || process.env.COZE_DB_PASSWORD,
-  database: process.env.PGDATABASE || process.env.COZE_DB_NAME,
-})
+// 延迟创建数据库连接 - 避免在没有数据库环境时报错
+let poolInstance: Pool | null = null;
+let dbInstance: ReturnType<typeof drizzle> | null = null;
 
-// 创建 drizzle 实例
-const db = drizzle(pool)
+function getDb() {
+  if (!dbInstance) {
+    const host = process.env.COZE_DB_HOST || process.env.PGHOST;
+    if (!host) {
+      throw new Error("Database not configured");
+    }
+    poolInstance = new Pool({
+      host,
+      port: parseInt(process.env.PGPORT || "5432"),
+      user: process.env.PGUSER || process.env.COZE_DB_USER,
+      password: process.env.PGPASSWORD || process.env.COZE_DB_PASSWORD,
+      database: process.env.PGDATABASE || process.env.COZE_DB_NAME,
+    });
+    dbInstance = drizzle(poolInstance);
+  }
+  return dbInstance;
+}
 
 export class ContactInfoManager {
   // 获取联系信息（只返回第一条记录）
   async getContactInfo(): Promise<ContactInfo | null> {
-    const result = await db.select().from(contactInfo).limit(1);
+    const result = await getDb().select().from(contactInfo).limit(1);
     return result[0] || null;
   }
 
   // 创建联系信息
   async createContactInfo(data: InsertContactInfo): Promise<ContactInfo> {
-    const [newInfo] = await db.insert(contactInfo).values(data).returning();
+    const [newInfo] = await getDb().insert(contactInfo).values(data).returning();
     return newInfo;
   }
 
   // 更新联系信息
   async updateContactInfo(id: string, data: UpdateContactInfo): Promise<ContactInfo | null> {
-    const [updated] = await db
+    const [updated] = await getDb()
       .update(contactInfo)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(contactInfo.id, id))
@@ -67,7 +77,7 @@ export class ContactInfoManager {
 
   // 增加下载次数
   async incrementDownloadCount(id: string): Promise<void> {
-    await db
+    await getDb()
       .update(contactInfo)
       .set({ downloadCount: sql`${contactInfo.downloadCount} + 1` })
       .where(eq(contactInfo.id, id));

@@ -5,12 +5,10 @@ import { Loading } from '@/components/loading';
 import { LayoutWrapper } from '@/components/layout-wrapper';
 import './globals.css';
 
-// 只在开发环境加载 Inspector
-/* eslint-disable @typescript-eslint/no-require-imports */
-const Inspector = process.env.NODE_ENV === 'development' 
-  ? require('react-dev-inspector').Inspector 
-  : ({ children }: { children: React.ReactNode }) => children;
-/* eslint-enable @typescript-eslint/no-require-imports */
+// Inspector 仅开发环境使用，生产环境直接渲染子组件
+function Inspector({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}
 
 export const metadata: Metadata = {
   title: {
