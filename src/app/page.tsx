@@ -237,7 +237,7 @@ export default function Home() {
   useEffect(() => {
     fetchPortfolios();
     // 从 localStorage 加载个人资料
-    const savedProfile = localStorage.getItem('userProfile');
+    const savedProfile = typeof window !== 'undefined' ? localStorage.getItem('userProfile') : null;
     if (savedProfile) {
       try {
         setProfileData(JSON.parse(savedProfile));
@@ -261,7 +261,9 @@ export default function Home() {
 
   const handleProfileSave = (newData: typeof DEFAULT_PROFILE_DATA) => {
     setProfileData(newData);
-    localStorage.setItem('userProfile', JSON.stringify(newData));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('userProfile', JSON.stringify(newData));
+    }
   };
 
   // 按分类整理作品集

@@ -3,6 +3,19 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
+
+// 安全的 localStorage 辅助函数
+const safeLocalStorage = {
+  getItem: (key: string): string | null => {
+    if (typeof window === 'undefined') return null;
+    return safeLocalStorage.getItem(key);
+  },
+  setItem: (key: string, value: string): void => {
+    if (typeof window === 'undefined') return;
+    safeLocalStorage.setItem(key, value);
+  },
+};
+
 // 心情类型定义
 export type MoodType =
   | 'happy'
@@ -137,7 +150,7 @@ export function MoodInteraction() {
       mood: newMood,
       timestamp: Date.now(),
     };
-    localStorage.setItem(MOOD_CACHE_KEY, JSON.stringify(state));
+    safeLocalStorage.setItem(MOOD_CACHE_KEY, JSON.stringify(state));
   }
 
   // 更新座右铭
@@ -154,7 +167,7 @@ export function MoodInteraction() {
           quote: data.moodQuote,
           timestamp: Date.now(),
         };
-        localStorage.setItem(QUOTE_CACHE_KEY, JSON.stringify(state));
+        safeLocalStorage.setItem(QUOTE_CACHE_KEY, JSON.stringify(state));
       }
     } catch (error) {
       console.error('更新座右铭失败:', error);
@@ -164,7 +177,7 @@ export function MoodInteraction() {
   // 加载缓存的心情
   function loadMoodFromCache() {
     try {
-      const cached = localStorage.getItem(MOOD_CACHE_KEY);
+      const cached = safeLocalStorage.getItem(MOOD_CACHE_KEY);
       if (cached) {
         const state: MoodState = JSON.parse(cached);
         const now = Date.now();
@@ -186,7 +199,7 @@ export function MoodInteraction() {
   // 加载缓存的座右铭
   function loadQuoteFromCache() {
     try {
-      const cached = localStorage.getItem(QUOTE_CACHE_KEY);
+      const cached = safeLocalStorage.getItem(QUOTE_CACHE_KEY);
       if (cached) {
         const state: QuoteState = JSON.parse(cached);
         const now = Date.now();
