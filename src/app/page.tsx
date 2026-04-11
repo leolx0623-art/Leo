@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -103,134 +103,21 @@ const DEFAULT_PROFILE_DATA = {
   ],
 };
 
-// ── Particle System with connection lines ──────────────────────────────────
-const PARTICLE_COUNT = 15;
-
-interface Particle {
-  id: number;
-  x: number; // percent
-  y: number; // percent
-  size: number;
-  color: string;
-  duration: number;
-  delay: number;
-  dx: number; // drift direction
-  dy: number;
-  opacity: number;
-}
-
-const PARTICLE_COLORS = [
-  'bg-purple-400',
-  'bg-purple-500',
-  'bg-pink-400',
-  'bg-pink-500',
-  'bg-blue-400',
-  'bg-blue-500',
+// 基于日期生成确定性渐变，每天不同，SSR/CSR一致
+const DAILY_GRADIENTS = [
+  { from: 'from-purple-900/30', via: 'via-blue-900/20', to: 'to-pink-900/30', accent: '#a855f7' },
+  { from: 'from-teal-900/30', via: 'via-purple-900/20', to: 'to-orange-900/30', accent: '#14b8a6' },
+  { from: 'from-indigo-900/30', via: 'via-rose-900/20', to: 'to-cyan-900/30', accent: '#6366f1' },
+  { from: 'from-emerald-900/30', via: 'via-violet-900/20', to: 'to-amber-900/30', accent: '#10b981' },
+  { from: 'from-sky-900/30', via: 'via-fuchsia-900/20', to: 'to-lime-900/30', accent: '#0ea5e9' },
+  { from: 'from-rose-900/30', via: 'via-indigo-900/20', to: 'to-emerald-900/30', accent: '#f43f5e' },
+  { from: 'from-amber-900/30', via: 'via-purple-900/20', to: 'to-teal-900/30', accent: '#f59e0b' },
 ];
 
-// 使用确定性种子随机数，确保SSR和客户端渲染一致
-function seededRandom(seed: number): number {
-  const x = Math.sin(seed * 9301 + 49297) * 233280;
-  return x - Math.floor(x);
-}
-
-function generateParticles(): Particle[] {
-  return Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
-    id: i,
-    x: seededRandom(i * 7 + 1) * 100,
-    y: seededRandom(i * 13 + 2) * 100,
-    size: 1 + seededRandom(i * 17 + 3) * 3,
-    color: PARTICLE_COLORS[Math.floor(seededRandom(i * 23 + 4) * PARTICLE_COLORS.length)],
-    duration: 6 + seededRandom(i * 29 + 5) * 8,
-    delay: seededRandom(i * 31 + 6) * 5,
-    dx: (seededRandom(i * 37 + 7) - 0.5) * 60,
-    dy: (seededRandom(i * 41 + 8) - 0.5) * 60,
-    opacity: 0.4 + seededRandom(i * 43 + 9) * 0.4,
-  }));
-}
-
-function ParticleField() {
-  const [mounted, setMounted] = useState(false);
-  const particles = useMemo(() => generateParticles(), []);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return <div className="absolute inset-0 overflow-hidden" />;
-  }
-
-  return (
-    <div className="absolute inset-0 overflow-hidden">
-      {/* Particles */}
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          className={`absolute rounded-full ${p.color}`}
-          style={{
-            width: p.size,
-            height: p.size,
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            opacity: p.opacity,
-          }}
-          animate={{
-            x: [0, p.dx, 0],
-            y: [0, p.dy, 0],
-            opacity: [0.3, 0.8, 0.3],
-          }}
-          transition={{
-            duration: p.duration,
-            repeat: Infinity,
-            delay: p.delay,
-            ease: 'easeInOut',
-          }}
-        />
-      ))}
-
-      {/* Connection lines – limited count to prevent stack overflow */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-        {(() => {
-          const lines: { key: string; x1: string; y1: string; x2: string; y2: string; opacity: number; dur: number }[] = [];
-          for (let i = 0; i < particles.length && lines.length < 30; i++) {
-            for (let j = i + 1; j < particles.length && lines.length < 30; j++) {
-              const p = particles[i], q = particles[j];
-              const dist = Math.hypot(p.x - q.x, p.y - q.y);
-              if (dist < 15) {
-                const opacity = Math.max(0, 0.15 * (1 - dist / 15));
-                lines.push({
-                  key: `${p.id}-${q.id}`,
-                  x1: `${p.x}%`, y1: `${p.y}%`,
-                  x2: `${q.x}%`, y2: `${q.y}%`,
-                  opacity,
-                  dur: 4 + seededRandom(p.id * 53 + q.id * 59) * 4,
-                });
-              }
-            }
-          }
-          return lines.map((l) => (
-            <motion.line
-              key={l.key}
-              x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
-              stroke="url(#lineGrad)"
-              strokeWidth={0.5}
-              strokeOpacity={l.opacity}
-              animate={{ strokeOpacity: [l.opacity * 0.5, l.opacity, l.opacity * 0.5] }}
-              transition={{ duration: l.dur, repeat: Infinity, ease: 'easeInOut' }}
-            />
-          ));
-        })()}
-        <defs>
-          <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#a855f7" />
-            <stop offset="50%" stopColor="#ec4899" />
-            <stop offset="100%" stopColor="#3b82f6" />
-          </linearGradient>
-        </defs>
-      </svg>
-    </div>
-  );
+function getDailyGradient() {
+  const today = new Date();
+  const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+  return DAILY_GRADIENTS[seed % DAILY_GRADIENTS.length];
 }
 
 export default function Home() {
@@ -239,10 +126,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState(DEFAULT_PROFILE_DATA);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const { scrollY } = useScroll();
-  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0]);
-  const heroScale = useTransform(scrollY, [0, 300], [1, 0.9]);
-
   useEffect(() => {
     fetchPortfolios();
     // 从 localStorage 加载个人资料
@@ -294,68 +177,173 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-purple-950/20">
       <Navigation />
       
-      {/* Hero Section with Video Background Effect */}
-      <motion.div
-        style={{ opacity: heroOpacity, scale: heroScale }}
-        className="relative min-h-screen flex items-center justify-center overflow-hidden"
-      >
-        {/* Animated Background with Particles + Connection Lines */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-pink-900/20" />
-          <ParticleField />
-        </div>
+      {/* Hero Section — 简约高级渐变风格 V2 */}
+      <section className="relative min-h-screen flex items-center overflow-hidden">
+        {/* 🎨 随机渐变背景 — 每天不同 */}
+        <div className={`absolute inset-0 z-0 bg-gradient-to-br ${getDailyGradient()}`} />
+        <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,rgba(168,85,247,0.08),transparent_50%)]" />
+        <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(236,72,153,0.06),transparent_50%)]" />
 
-        {/* Hero Content */}
-        <div className="relative z-10 container mx-auto px-4 text-center flex items-center justify-center">
+        {/* 装饰性几何元素 */}
+        <div className="absolute top-20 right-10 w-72 h-72 border border-purple-500/10 rounded-full animate-[spin_40s_linear_infinite]" />
+        <div className="absolute bottom-32 right-1/4 w-48 h-48 border border-pink-500/8 rounded-full animate-[spin_30s_linear_infinite_reverse]" />
+        <div className="absolute top-1/3 right-1/3 w-2 h-2 bg-purple-400/40 rounded-full animate-pulse" />
+        <div className="absolute top-1/2 right-1/5 w-1.5 h-1.5 bg-pink-400/30 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-1/4 left-1/3 w-1 h-1 bg-blue-400/30 rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+
+        {/* Hero 内容 — 左对齐布局 */}
+        <div className="relative z-10 container mx-auto px-6 lg:px-16">
+          <div className="grid lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
+            {/* 左侧：主文案 */}
+            <motion.div
+              initial={{ opacity: 0, x: -40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+              className="space-y-8"
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-500/20 bg-purple-500/5">
+                <span className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
+                <span className="text-sm text-purple-300/80 tracking-wide">AIGC Creator & AI Director</span>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-[0.95] tracking-tight">
+                  <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+                    雷响
+                  </span>
+                </h1>
+                <p className="text-xl md:text-2xl text-foreground/70 font-light max-w-lg">
+                  用 AI 重新定义视觉叙事
+                </p>
+                <p className="text-base text-muted-foreground max-w-md leading-relaxed">
+                  专注于 AI 短片、微电影、真人短剧与漫剧创作，探索人工智能与创意的无限可能
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-4 pt-2">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-base px-7 rounded-full shadow-lg shadow-purple-500/20 transition-all hover:shadow-purple-500/30 hover:scale-[1.02]"
+                  asChild
+                >
+                  <Link href="/portfolio">
+                    浏览作品集
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="text-base px-7 rounded-full border-white/10 hover:bg-white/5 hover:border-white/20 transition-all"
+                  asChild
+                >
+                  <Link href="/chat">
+                    <Bot className="mr-2 w-4 h-4" />
+                    AI 数字分身
+                  </Link>
+                </Button>
+              </div>
+            </motion.div>
+
+            {/* 右侧：装饰性卡片区域 */}
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
+              className="hidden lg:flex items-center justify-center relative"
+            >
+              {/* 主装饰 — 玻璃卡片 */}
+              <div className="relative w-80 h-96">
+                {/* 背景光晕 */}
+                <div className="absolute -inset-8 bg-gradient-to-br from-purple-500/10 via-pink-500/5 to-blue-500/10 rounded-3xl blur-2xl" />
+                {/* 主卡片 */}
+                <div className="relative w-full h-full rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm overflow-hidden">
+                  {/* 卡片顶部渐变条 */}
+                  <div className="h-1.5 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500" />
+                  {/* 卡片内容 */}
+                  <div className="p-6 space-y-5">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center text-3xl">
+                      👨‍💻
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground/90">雷响</h3>
+                      <p className="text-sm text-muted-foreground">AIGC 运营主管 & AI 导演</p>
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      <span className="px-2.5 py-1 text-xs rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20">AI 短片</span>
+                      <span className="px-2.5 py-1 text-xs rounded-full bg-pink-500/10 text-pink-300 border border-pink-500/20">AI 漫剧</span>
+                      <span className="px-2.5 py-1 text-xs rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20">AI 微电影</span>
+                      <span className="px-2.5 py-1 text-xs rounded-full bg-green-500/10 text-green-300 border border-green-500/20">AI 真人短剧</span>
+                    </div>
+                    <div className="pt-2 border-t border-white/5 space-y-2.5">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="w-3.5 h-3.5 text-purple-400" />
+                        中国
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Sparkles className="w-3.5 h-3.5 text-pink-400" />
+                        AIGC 中台运营
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Zap className="w-3.5 h-3.5 text-blue-400" />
+                        AI 工作流研究
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* 浮动小卡片 */}
+                <motion.div
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute -right-8 top-12 px-3 py-2 rounded-lg border border-white/10 bg-white/[0.05] backdrop-blur-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <Film className="w-4 h-4 text-purple-400" />
+                    <span className="text-xs text-foreground/70">50+ 作品</span>
+                  </div>
+                </motion.div>
+                <motion.div
+                  animate={{ y: [0, 8, 0] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute -left-6 bottom-16 px-3 py-2 rounded-lg border border-white/10 bg-white/[0.05] backdrop-blur-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <Award className="w-4 h-4 text-pink-400" />
+                    <span className="text-xs text-foreground/70">AI Director</span>
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* 底部统计栏 */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="flex flex-col items-center"
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="mt-20 lg:mt-28 border-t border-white/5 pt-8 pb-8 max-w-7xl mx-auto"
           >
-            <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/30 mb-6">
-              <Sparkles className="w-4 h-4 text-purple-400" />
-              <span className="text-sm text-purple-300">AI 驱动创意</span>
-            </div>
-
-            <h1 className="text-6xl md:text-8xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                AIGC
-              </span>
-              <br />
-              <span className="text-foreground">创作者作品集</span>
-            </h1>
-
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-8">
-              探索 AI 生成的艺术、视频、音频和创意写作的无限可能
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-lg px-8"
-                asChild
-              >
-                <Link href="/portfolio">
-                  浏览作品集
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-lg px-8 border-purple-500/30 hover:bg-purple-500/10"
-                asChild
-              >
-                <Link href="/chat">
-                  <Bot className="mr-2 w-5 h-5" />
-                  与 AI 交流
-                </Link>
-              </Button>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              <div className="space-y-1">
+                <div className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">50+</div>
+                <div className="text-sm text-muted-foreground">AIGC 作品</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-red-400 bg-clip-text text-transparent">10+</div>
+                <div className="text-sm text-muted-foreground">合作方</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">4</div>
+                <div className="text-sm text-muted-foreground">分发平台</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-3xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">∞</div>
+                <div className="text-sm text-muted-foreground">创意灵感</div>
+              </div>
             </div>
           </motion.div>
         </div>
-      </motion.div>
+      </section>
 
       {/* Personal Profile Card Section */}
       <section className="py-20 container mx-auto px-4 relative overflow-hidden">
