@@ -1,665 +1,392 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
-import {
-  DndContext,
-  pointerWithin,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Navigation } from '@/components/navigation';
-import { Plus, Edit2, Trash2, X, Play, ExternalLink, Link2, GripVertical } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 
-// 分类常量
-const CATEGORIES = [
-  { value: 'all', label: '全部', icon: '🎨' },
-  { value: 'image', label: '图像', icon: '🖼️' },
-  { value: 'video', label: '视频', icon: '🎬' },
-  { value: 'audio', label: '音频', icon: '🎵' },
-  { value: 'website', label: '网址', icon: '🌐' },
-  { value: 'other', label: '其他', icon: '📦' },
-] as const;
+// 珊瑚色主题色
+const CORAL = '#E85A5A';
 
-interface Portfolio {
+// 分类筛选标签
+const FILTER_TABS = [
+  { key: 'all', label: '全部' },
+  { key: 'image', label: '🖼️ 图像' },
+  { key: 'video', label: '🎬 视频' },
+  { key: 'audio', label: '🎵 音频' },
+  { key: 'website', label: '🌐 网址' },
+  { key: 'other', label: '📦 其他' },
+];
+
+// 分类图标映射
+const CATEGORY_ICONS: Record<string, string> = {
+  image: '🖼️',
+  video: '🎬',
+  audio: '🎵',
+  website: '🌐',
+  other: '📦',
+};
+
+// 卡片渐变背景预设
+const GRADIENT_PRESETS = [
+  'from-rose-100 to-amber-50',
+  'from-blue-100 to-cyan-50',
+  'from-purple-100 to-pink-50',
+  'from-green-100 to-emerald-50',
+  'from-orange-100 to-yellow-50',
+  'from-indigo-100 to-blue-50',
+];
+
+interface PortfolioItem {
   id: string;
   title: string;
   description: string;
   category: string;
+  tags?: string[];
+  features?: string[];
+  url?: string;
   imageUrl?: string;
   videoUrl?: string;
   websiteUrl?: string;
-  createdAt: string;
-  updatedAt?: string;
 }
 
-// 可拖拽的作品卡片组件
-function SortablePortfolioCard({
-  portfolio,
-  onEdit,
-  onDelete,
-}: {
-  portfolio: Portfolio;
-  onEdit: (portfolio: Portfolio) => void;
-  onDelete: (id: string) => void;
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: portfolio.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style} className="h-full">
-      <Card className="h-full flex flex-col overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 group border-purple-500/10 hover:border-purple-500/30">
-        {/* 媒体内容预览 */}
-        <div className="relative aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center overflow-hidden flex-shrink-0">
-          {/* 拖拽手柄 */}
-          <div
-            {...attributes}
-            {...listeners}
-            className="absolute top-2 left-2 z-10 p-2 bg-black/50 rounded-md cursor-grab hover:bg-black/70 transition-colors"
-          >
-            <GripVertical className="w-5 h-5 text-white" />
-          </div>
-
-          {/* 优先级1: 图片预览 */}
-          {portfolio.imageUrl && (
-            <Image
-              src={portfolio.imageUrl}
-              alt={portfolio.title}
-              fill
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-            />
-          )}
-
-          {/* 优先级2: 视频预览 */}
-          {!portfolio.imageUrl && portfolio.videoUrl && (
-            <video
-              src={portfolio.videoUrl}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              muted
-              preload="metadata"
-            />
-          )}
-
-          {/* 优先级3: 网站预览 */}
-          {!portfolio.imageUrl && !portfolio.videoUrl && portfolio.websiteUrl && (
-            <div className="w-full h-full p-6 flex flex-col items-center justify-center bg-gradient-to-br from-blue-900/40 to-purple-900/40 group-hover:from-blue-900/60 group-hover:to-purple-900/60 transition-colors duration-500">
-              <Link2 className="w-16 h-16 text-white/80 mb-3 group-hover:text-purple-300 transition-colors" />
-              <p className="text-white/90 text-sm font-medium text-center line-clamp-2">
-                {portfolio.title}
-              </p>
-              <p className="text-white/60 text-xs mt-2 truncate max-w-full">
-                {portfolio.websiteUrl.replace(/^https?:\/\//, '')}
-              </p>
-            </div>
-          )}
-
-          {/* 优先级4: 默认图案 */}
-          {!portfolio.imageUrl && !portfolio.videoUrl && !portfolio.websiteUrl && (
-            <div className="flex flex-col items-center justify-center gap-4">
-              <div className="text-8xl animate-pulse">🎨</div>
-              <span className="text-white/80 text-lg">创意作品</span>
-            </div>
-          )}
-
-          {/* 视频播放按钮遮罩 - enhanced */}
-          {!portfolio.imageUrl && portfolio.videoUrl && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/20 transition-colors duration-300">
-              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-125 group-hover:bg-purple-500/50 transition-all duration-500 border border-white/20 group-hover:border-purple-400/50 shadow-lg group-hover:shadow-purple-500/30">
-                <Play className="w-8 h-8 text-white ml-1" fill="white" />
-              </div>
-            </div>
-          )}
-
-          {/* Video badge indicator */}
-          {portfolio.videoUrl && !portfolio.imageUrl && (
-            <div className="absolute bottom-3 left-3 z-10">
-              <span className="text-xs bg-red-500/80 text-white px-2 py-0.5 rounded-full flex items-center gap-1 backdrop-blur-sm">
-                <Play className="w-2.5 h-2.5" fill="white" /> 视频
-              </span>
-            </div>
-          )}
-
-          {/* 操作按钮 */}
-          <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              size="icon"
-              variant="secondary"
-              onClick={() => onEdit(portfolio)}
-              className="h-8 w-8 bg-black/50 hover:bg-black/70"
-            >
-              <Edit2 className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="secondary"
-              onClick={() => onDelete(portfolio.id)}
-              className="h-8 w-8 bg-black/50 hover:bg-red-600"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        <CardContent className="p-6 flex-1 flex flex-col">
-          <h3 className="text-xl font-bold mb-2 min-h-[28px] line-clamp-1">{portfolio.title}</h3>
-          <p className="text-muted-foreground mb-4 line-clamp-2 min-h-[40px] flex-1">{portfolio.description}</p>
-
-          <div className="flex flex-wrap gap-2 mt-auto">
-            {portfolio.websiteUrl && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => window.open(portfolio.websiteUrl, '_blank')}
-                className="flex items-center gap-2"
-              >
-                <ExternalLink className="h-4 w-4" />
-                查看网站
-              </Button>
-            )}
-            {portfolio.videoUrl && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => window.open(portfolio.videoUrl, '_blank')}
-                className="flex items-center gap-2"
-              >
-                <Play className="h-4 w-4" />
-                播放视频
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-// 作品集内容组件（包含 useSearchParams）
-function PortfolioContent() {
-  const searchParams = useSearchParams();
-  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingPortfolio, setEditingPortfolio] = useState<Portfolio | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(
-    searchParams.get('category') || 'all'
-  );
-
-  // 配置拖拽传感器
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  // 拖拽结束处理
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      const oldIndex = portfolios.findIndex((p) => p.id === active.id);
-      const newIndex = portfolios.findIndex((p) => p.id === over.id);
-
-      const newPortfolios = arrayMove(portfolios, oldIndex, newIndex);
-      setPortfolios(newPortfolios);
-
-      // 更新服务器端排序
-      try {
-        const updates = newPortfolios.map((portfolio, index) => ({
-          id: portfolio.id,
-          sortOrder: index,
-        }));
-
-        const response = await fetch('/api/portfolios/reorder', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(updates),
-        });
-
-        if (response.ok) {
-          // 成功后重新加载作品集以确保数据同步
-          await fetchPortfolios();
-        } else {
-          console.error('更新排序失败:', await response.text());
-          // 恢复原序
-          setPortfolios(portfolios);
-        }
-      } catch (error) {
-        console.error('更新排序失败:', error);
-        // 恢复原序
-        setPortfolios(portfolios);
-      }
-    }
-  };
-
-  // 表单状态
-  const [portfolioFormData, setPortfolioFormData] = useState({
-    title: '',
-    description: '',
-    category: 'other',
+// 示例数据（API 失败时使用）
+const SAMPLE_PORTFOLIOS: PortfolioItem[] = [
+  {
+    id: '1',
+    title: 'AI 数字人短片',
+    description: '使用 AI 技术生成的数字人形象短片，展示未来视觉创作的可能性。',
+    category: 'video',
+    tags: ['AI Video', '数字人', 'Runway ML'],
+    features: ['AI 数字人形象生成', '自动化视频合成', '多风格切换'],
     imageUrl: '',
-    videoUrl: '',
-    websiteUrl: '',
-  });
+  },
+  {
+    id: '2',
+    title: '赛博朋克城市系列',
+    description: 'Midjourney 创作的赛博朋克风格城市景观系列作品。',
+    category: 'image',
+    tags: ['Midjourney', '概念艺术', 'AI 绘画'],
+    features: ['Midjourney 提示词工程', '后期精修', '系列化创作'],
+    imageUrl: '',
+  },
+  {
+    id: '3',
+    title: 'AI 音乐创作实验',
+    description: '探索 AI 辅助音乐创作的边界，从旋律生成到编曲混音。',
+    category: 'audio',
+    tags: ['Suno AI', '音乐生成', 'AI 创作'],
+    features: ['AI 旋律生成', '智能编曲', '风格迁移'],
+    imageUrl: '',
+  },
+  {
+    id: '4',
+    title: 'AIGC 创作者工具箱',
+    description: '为 AIGC 创作者打造的一站式在线工具集合平台。',
+    category: 'website',
+    tags: ['Next.js', 'React', '全栈开发'],
+    features: ['在线工具集合', 'AI 接口集成', '响应式设计'],
+    websiteUrl: '#',
+  },
+  {
+    id: '5',
+    title: 'AI 短剧「未来日记」',
+    description: '完全由 AI 辅助制作的科幻短剧，从剧本到画面全流程 AI 化。',
+    category: 'video',
+    tags: ['AI 短剧', 'Sora', 'Claude'],
+    features: ['AI 剧本创作', 'AI 视频生成', 'AI 配音配乐'],
+    imageUrl: '',
+  },
+  {
+    id: '6',
+    title: '水墨风格 AI 绘画',
+    description: '将中国传统水墨画风格与 AI 绘画技术融合的创新尝试。',
+    category: 'image',
+    tags: ['Stable Diffusion', '水墨画', '风格迁移'],
+    features: ['LoRA 模型训练', '水墨风格微调', '高分辨率输出'],
+    imageUrl: '',
+  },
+];
 
-  // 加载作品集
-  useEffect(() => {
-    fetchPortfolios();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategory]);
-
-  const fetchPortfolios = async () => {
-    try {
-      const url = selectedCategory === 'all'
-        ? '/api/portfolios'
-        : `/api/portfolios?category=${selectedCategory}`;
-      const response = await fetch(url);
-      const data = await response.json();
-      setPortfolios(data);
-    } catch (error) {
-      console.error('获取作品集失败:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 打开添加对话框
-  const handleAdd = () => {
-    setEditingPortfolio(null);
-    setPortfolioFormData({
-      title: '',
-      description: '',
-      category: 'other',
-      imageUrl: '',
-      videoUrl: '',
-      websiteUrl: '',
-    });
-    setDialogOpen(true);
-  };
-
-  // 打开编辑对话框
-  const handleEdit = (portfolio: Portfolio) => {
-    setEditingPortfolio(portfolio);
-    setPortfolioFormData({
-      title: portfolio.title,
-      description: portfolio.description,
-      category: portfolio.category,
-      imageUrl: portfolio.imageUrl || '',
-      videoUrl: portfolio.videoUrl || '',
-      websiteUrl: portfolio.websiteUrl || '',
-    });
-    setDialogOpen(true);
-  };
-
-  // 上传文件
-  const handleUpload = async (file: File, type: 'image' | 'video') => {
-    try {
-      setUploading(true);
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', file);
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: uploadFormData,
-      });
-
-      const data = await response.json();
-
-      if (type === 'image') {
-        setPortfolioFormData({ ...portfolioFormData, imageUrl: data.key });
-      } else {
-        setPortfolioFormData({ ...portfolioFormData, videoUrl: data.key });
-      }
-    } catch (error) {
-      console.error('上传失败:', error);
-      alert('上传失败，请重试');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  // 保存作品集
-  const handleSave = async () => {
-    try {
-      const url = editingPortfolio
-        ? `/api/portfolios/${editingPortfolio.id}`
-        : '/api/portfolios';
-
-      const response = await fetch(url, {
-        method: editingPortfolio ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(portfolioFormData),
-      });
-
-      if (response.ok) {
-        await fetchPortfolios();
-        setDialogOpen(false);
-      } else {
-        alert('保存失败，请重试');
-      }
-    } catch (error) {
-      console.error('保存失败:', error);
-      alert('保存失败，请重试');
-    }
-  };
-
-  // 删除作品集
-  const handleDelete = async (id: string) => {
-    if (!confirm('确定要删除这个作品集吗？')) return;
-
-    try {
-      const response = await fetch(`/api/portfolios/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        await fetchPortfolios();
-      } else {
-        alert('删除失败，请重试');
-      }
-    } catch (error) {
-      console.error('删除失败:', error);
-      alert('删除失败，请重试');
-    }
-  };
+// 项目卡片组件
+function ProjectCard({ item, onClick }: { item: PortfolioItem; onClick: () => void }) {
+  const gradientClass = GRADIENT_PRESETS[parseInt(item.id) % GRADIENT_PRESETS.length];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-purple-950/20">
-      <Navigation />
-
-      <main className="container mx-auto px-4 pt-24 pb-16">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="text-center mb-12"
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -4, boxShadow: '0 12px 40px rgba(0,0,0,0.08)' }}
+      transition={{ duration: 0.3 }}
+      onClick={onClick}
+      className="bg-white rounded-xl overflow-hidden cursor-pointer border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+    >
+      {/* 图片占位区域 */}
+      <div className={`aspect-video bg-gradient-to-br ${gradientClass} flex items-center justify-center relative`}>
+        <span className="text-5xl opacity-60">{CATEGORY_ICONS[item.category] || '📦'}</span>
+        <span
+          className="absolute top-3 left-3 text-xs font-medium px-2.5 py-1 rounded-full text-white"
+          style={{ backgroundColor: CORAL }}
         >
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-            AIGC作品项目库
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Leo的创作空间
-          </p>
-        </motion.div>
+          {item.category === 'image' ? '图像' : item.category === 'video' ? '视频' : item.category === 'audio' ? '音频' : item.category === 'website' ? '网址' : '其他'}
+        </span>
+      </div>
 
-        {/* 添加按钮 */}
-        <div className="flex flex-col items-center gap-4 mb-8">
-          <Button
-            onClick={handleAdd}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-          >
-            <Plus className="mr-2 h-5 w-5" />
-            添加作品集
-          </Button>
-
-          {/* 分类选择器 */}
-          <div className="flex flex-wrap gap-2 justify-center">
-            {CATEGORIES.map((category) => (
-              <Button
-                key={category.value}
-                variant={selectedCategory === category.value ? 'default' : 'outline'}
-                onClick={() => setSelectedCategory(category.value)}
-                className="rounded-full gap-2"
-                size="sm"
-              >
-                <span>{category.icon}</span>
-                <span>{category.label}</span>
-                {selectedCategory === category.value && (
-                  <Badge className="ml-1 bg-primary/20 text-primary">
-                    {category.value === 'all'
-                      ? portfolios.length
-                      : portfolios.filter((p) => p.category === category.value).length}
-                  </Badge>
-                )}
-              </Button>
+      {/* 内容区域 */}
+      <div className="p-5">
+        <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
+        <p className="text-sm text-gray-500 line-clamp-2 mb-3">{item.description}</p>
+        {item.tags && item.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {item.tags.map((tag) => (
+              <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                {tag}
+              </span>
             ))}
           </div>
-        </div>
-
-        {/* 加载状态 */}
-        {loading && (
-          <div className="text-center py-20 text-muted-foreground">
-            加载中...
-          </div>
         )}
+      </div>
+    </motion.div>
+  );
+}
 
-        {/* 作品集列表 */}
-        {!loading && portfolios.length === 0 && (
-          <div className="text-center py-20 text-muted-foreground">
-            还没有作品集，点击上方按钮添加第一个作品
-          </div>
-        )}
+// 详情弹窗组件
+function DetailModal({ item, isOpen, onClose }: { item: PortfolioItem; isOpen: boolean; onClose: () => void }) {
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
 
-        {!loading && portfolios.length > 0 && (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={pointerWithin}
-            onDragEnd={handleDragEnd}
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
+
+  const gradientClass = GRADIENT_PRESETS[parseInt(item.id) % GRADIENT_PRESETS.length];
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={onClose}
+        >
+          {/* 遮罩层 */}
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+
+          {/* 弹窗内容 */}
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="relative bg-white rounded-2xl shadow-2xl max-w-[900px] w-full max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
           >
-            <SortableContext
-              items={portfolios.map(p => p.id)}
-              strategy={verticalListSortingStrategy}
+            {/* 关闭按钮 */}
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-gray-500"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {portfolios.map((portfolio, idx) => (
-                  <motion.div
-                    key={portfolio.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05, duration: 0.3 }}
-                  >
-                    <SortablePortfolioCard
-                    portfolio={portfolio}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                  </motion.div>
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
-        )}
+              ✕
+            </button>
 
-        {/* 编辑对话框 */}
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingPortfolio ? '编辑作品集' : '添加作品集'}
-              </DialogTitle>
-              <DialogDescription>
-                {editingPortfolio ? '编辑您的作品集信息' : '创建一个新的作品集'}
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 py-4">
-              <div>
-                <Label htmlFor="title">标题 *</Label>
-                <Input
-                  id="title"
-                  value={portfolioFormData.title}
-                  onChange={(e) => setPortfolioFormData({ ...portfolioFormData, title: e.target.value })}
-                  placeholder="输入作品标题"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="description">描述 *</Label>
-                <Textarea
-                  id="description"
-                  value={portfolioFormData.description}
-                  onChange={(e) => setPortfolioFormData({ ...portfolioFormData, description: e.target.value })}
-                  placeholder="描述您的作品"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label>分类 *</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {CATEGORIES.filter(c => c.value !== 'all').map((category) => (
-                    <Button
-                      key={category.value}
-                      variant={portfolioFormData.category === category.value ? 'default' : 'outline'}
-                      onClick={() => setPortfolioFormData({ ...portfolioFormData, category: category.value })}
-                      className="rounded-full gap-2"
-                      size="sm"
-                    >
-                      <span>{category.icon}</span>
-                      <span>{category.label}</span>
-                    </Button>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-0">
+              {/* 左栏：预览区域 */}
+              <div className="md:col-span-2 p-6">
+                <div className={`aspect-[4/3] rounded-xl bg-gradient-to-br ${gradientClass} flex items-center justify-center mb-4`}>
+                  <span className="text-7xl opacity-50">{CATEGORY_ICONS[item.category] || '📦'}</span>
+                </div>
+                {/* 缩略图条 */}
+                <div className="grid grid-cols-4 gap-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className={`aspect-square rounded-lg bg-gradient-to-br ${GRADIENT_PRESETS[(parseInt(item.id) + i) % GRADIENT_PRESETS.length]} flex items-center justify-center`}>
+                      <span className="text-lg opacity-40">{CATEGORY_ICONS[item.category] || '📦'}</span>
+                    </div>
                   ))}
                 </div>
               </div>
 
-              <div>
-                <Label>图片</Label>
-                <div className="space-y-2">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleUpload(file, 'image');
-                    }}
-                    disabled={uploading}
-                  />
-                  {portfolioFormData.imageUrl && (
-                    <div className="relative">
-                      <Image
-                        src={portfolioFormData.imageUrl}
-                        alt="预览"
-                        width={300}
-                        height={192}
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        className="absolute top-2 right-2"
-                        onClick={() => setPortfolioFormData({ ...portfolioFormData, imageUrl: '' })}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
+              {/* 右栏：项目信息 */}
+              <div className="md:col-span-3 p-6 md:pl-2">
+                {/* 分类标签 */}
+                <span
+                  className="inline-block text-xs font-medium px-3 py-1 rounded-full text-white mb-4"
+                  style={{ backgroundColor: CORAL }}
+                >
+                  {item.category === 'image' ? '图像' : item.category === 'video' ? '视频' : item.category === 'audio' ? '音频' : item.category === 'website' ? '网址' : '其他'}
+                </span>
 
-              <div>
-                <Label>视频</Label>
-                <div className="space-y-2">
-                  <Input
-                    type="file"
-                    accept="video/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleUpload(file, 'video');
-                    }}
-                    disabled={uploading}
-                  />
-                  {portfolioFormData.videoUrl && (
-                    <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-                      <Play className="h-4 w-4" />
-                      <span className="text-sm flex-1 truncate">视频已上传</span>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => setPortfolioFormData({ ...portfolioFormData, videoUrl: '' })}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
+                {/* 标题 */}
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">{item.title}</h2>
 
-              <div>
-                <Label htmlFor="website">网站链接</Label>
-                <Input
-                  id="website"
-                  value={portfolioFormData.websiteUrl}
-                  onChange={(e) => setPortfolioFormData({ ...portfolioFormData, websiteUrl: e.target.value })}
-                  placeholder="https://example.com"
-                />
+                {/* 功能列表 */}
+                {item.features && item.features.length > 0 && (
+                  <ul className="space-y-2 mb-5">
+                    {item.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: CORAL }} />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {/* 技术标签 */}
+                {item.tags && item.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-5">
+                    {item.tags.map((tag) => (
+                      <span key={tag} className="text-xs px-3 py-1 rounded-full border border-gray-200 text-gray-600">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* 关于项目 */}
+                <div className="border-l-2 pl-4 mb-6" style={{ borderColor: CORAL }}>
+                  <h4 className="text-sm font-bold text-gray-900 mb-2">关于项目</h4>
+                  <p className="text-sm text-gray-600 leading-relaxed">{item.description}</p>
+                </div>
+
+                {/* CTA 按钮 */}
+                <button
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+                  style={{ backgroundColor: '#1A1A1A' }}
+                >
+                  查看详情 →
+                </button>
               </div>
             </div>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                取消
-              </Button>
-              <Button
-                onClick={handleSave}
-                disabled={!portfolioFormData.title || !portfolioFormData.description || uploading}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-              >
-                {uploading ? '上传中...' : '保存'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </main>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
-// 主页面组件（使用 Suspense 包裹）
 export default function PortfolioPage() {
+  const [portfolios, setPortfolios] = useState<PortfolioItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [selectedProject, setSelectedProject] = useState<PortfolioItem | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    async function fetchPortfolios() {
+      try {
+        const res = await fetch('/api/portfolios');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setPortfolios(data);
+            return;
+          }
+        }
+      } catch {
+        // API 请求失败，使用示例数据
+      }
+      setPortfolios(SAMPLE_PORTFOLIOS);
+      setIsLoading(false);
+    }
+    fetchPortfolios();
+  }, []);
+
+  // 筛选作品
+  const filteredPortfolios = activeFilter === 'all'
+    ? portfolios
+    : portfolios.filter((p) => p.category === activeFilter);
+
+  // 打开详情弹窗
+  const openModal = (item: PortfolioItem) => {
+    setSelectedProject(item);
+    setIsModalOpen(true);
+  };
+
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-purple-950/20 flex items-center justify-center">
-        <Navigation />
-        <div className="text-center text-muted-foreground">加载中...</div>
+    <div className="min-h-screen bg-gray-50/50">
+      {/* 页面头部 */}
+      <div className="max-w-6xl mx-auto px-6 pt-24 pb-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <p className="text-sm text-gray-400 uppercase tracking-widest mb-2">Portfolio</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-6">项目展示</h1>
+
+          {/* 筛选标签 */}
+          <div className="flex flex-wrap gap-2">
+            {FILTER_TABS.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveFilter(tab.key)}
+                className="px-4 py-2 rounded-full text-sm font-medium transition-all"
+                style={{
+                  backgroundColor: activeFilter === tab.key ? CORAL : '#F3F4F6',
+                  color: activeFilter === tab.key ? '#FFFFFF' : '#4B5563',
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </motion.div>
       </div>
-    }>
-      <PortfolioContent />
-    </Suspense>
+
+      {/* 项目网格 */}
+      <div className="max-w-6xl mx-auto px-6 pb-24">
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-xl overflow-hidden animate-pulse">
+                <div className="aspect-video bg-gray-200" />
+                <div className="p-5 space-y-3">
+                  <div className="h-5 bg-gray-200 rounded w-3/4" />
+                  <div className="h-4 bg-gray-200 rounded w-full" />
+                  <div className="h-4 bg-gray-200 rounded w-2/3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredPortfolios.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-gray-400 text-lg">暂无该分类的作品</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredPortfolios.map((item, index) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+              >
+                <ProjectCard item={item} onClick={() => openModal(item)} />
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 详情弹窗 */}
+      {selectedProject && (
+        <DetailModal
+          item={selectedProject}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
+    </div>
   );
 }

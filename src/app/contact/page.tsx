@@ -1,454 +1,265 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Navigation } from '@/components/navigation';
-import { ContactInfoEditor } from '@/components/contact-info-editor';
-import { Mail, Phone, MapPin, Download, MessageSquare, ExternalLink, Edit } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-interface ContactInfo {
-  email?: string;
-  phone?: string;
-  location?: string;
-  github?: string;
-  bilibili?: string;
+const CORAL = '#E85A5A';
+
+// 社交媒体配置
+const SOCIAL_LINKS = [
+  { name: '抖音', handle: '@雷响AIGC', icon: '🎵', color: '#000000' },
+  { name: '小红书', handle: '@雷响的AI创作', icon: '📕', color: '#FE2C55' },
+  { name: 'B站', handle: '@雷响AIGC', icon: '📺', color: '#00A1D6' },
+  { name: '视频号', handle: '@雷响AI导演', icon: '📹', color: '#07C160' },
+  { name: '微博', handle: '@雷响AIGC', icon: '📢', color: '#E6162D' },
+  { name: 'Github', handle: '@leolx0623-art', icon: '💻', color: '#24292F' },
+];
+
+interface GuestbookMessage {
+  id: string;
+  name: string;
+  message: string;
+  timestamp: string;
 }
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
-  });
-  const [guestbookMessages, setGuestbookMessages] = useState<Array<{ id: number; name: string; message: string; date: string }>>([]);
-  const [guestbookName, setGuestbookName] = useState('');
-  const [guestbookInput, setGuestbookInput] = useState('');
+  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [guestName, setGuestName] = useState('');
+  const [guestMessage, setGuestMessage] = useState('');
+  const [guestMessages, setGuestMessages] = useState<GuestbookMessage[]>([
+    { id: '1', name: '访客小明', message: '作品太棒了，期待更多创作！', timestamp: '2026-03-15' },
+    { id: '2', name: 'AI爱好者', message: 'AI数字人短片真的很震撼，请问用什么工具做的？', timestamp: '2026-03-10' },
+    { id: '3', name: '设计师小王', message: '风格很独特，想合作交流一下~', timestamp: '2026-03-05' },
+  ]);
 
-  // 联系信息状态
-  const [contactInfo, setContactInfo] = useState({
-    id: '',
-    email: 'hello@aigccreator.com',
-    phone: '+86 138-8888-8888',
-    location: '中国，北京',
-    resumeKey: null as string | null,
-    resumeFileName: null as string | null,
-    downloadCount: 234,
-    downloadUrl: null as string | null,
-  });
-  const [editorOpen, setEditorOpen] = useState(false);
-  const [loadingContactInfo, setLoadingContactInfo] = useState(false);
-
-  // 加载联系信息
-  useEffect(() => {
-    loadContactInfo();
-  }, []);
-
-  const loadContactInfo = async () => {
-    setLoadingContactInfo(true);
-    try {
-      const response = await fetch('/api/contact/info');
-      if (response.ok) {
-        const data = await response.json();
-        setContactInfo(data);
-      }
-    } catch (error) {
-      console.error('加载联系信息失败:', error);
-    } finally {
-      setLoadingContactInfo(false);
-    }
-  };
-
-  const handleContactInfoSave = async (data: ContactInfo) => {
-    try {
-      const response = await fetch('/api/contact/info', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        const updatedData = await response.json();
-        setContactInfo(updatedData);
-        alert('联系信息保存成功！');
-      } else {
-        const errorData = await response.json();
-        alert(`保存失败：${errorData.error}`);
-      }
-    } catch (error) {
-      console.error('保存联系信息失败:', error);
-      alert('保存失败，请重试');
-    }
-  };
-
-  const handleResumeDownload = async () => {
-    if (!contactInfo.downloadUrl) {
-      alert('暂无简历文件');
-      return;
-    }
-
-    try {
-      // 使用fetch + blob模式下载文件
-      const response = await fetch(contactInfo.downloadUrl);
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = contactInfo.resumeFileName || 'resume';
-      link.click();
-      window.URL.revokeObjectURL(blobUrl);
-
-      // 更新下载次数
-      await fetch('/api/contact/info', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: contactInfo.id,
-          email: contactInfo.email,
-          phone: contactInfo.phone,
-          location: contactInfo.location,
-          resumeKey: contactInfo.resumeKey,
-          resumeFileName: contactInfo.resumeFileName,
-        }),
-      });
-    } catch (error) {
-      console.error('下载简历失败:', error);
-      alert('下载失败，请重试');
-    }
-  };
-
-  const handleContactSubmit = async (e: React.FormEvent) => {
+  // 提交联系表单
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) return;
     setIsSubmitting(true);
-
     try {
-      const response = await fetch('/api/contact/send', {
+      const res = await fetch('/api/contact/send', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          subject: formData.subject,
-          message: formData.message,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        alert(result.message || '消息发送成功！我会尽快回复您。');
+      if (res.ok) {
+        setSubmitSuccess(true);
         setFormData({ name: '', email: '', subject: '', message: '' });
-      } else {
-        alert(result.error || '消息发送失败，请稍后重试');
+        setTimeout(() => setSubmitSuccess(false), 3000);
       }
-    } catch (error) {
-      console.error('发送消息失败:', error);
-      alert('消息发送失败，请检查网络连接后重试');
+    } catch {
+      // 静默处理错误
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleGuestbookSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!guestbookInput.trim()) return;
-
-    const submitData = {
-      name: guestbookName.trim() || '匿名访客',
-      message: guestbookInput,
+  // 提交留言
+  const handleGuestSubmit = () => {
+    if (!guestMessage.trim()) return;
+    const newMsg: GuestbookMessage = {
+      id: Date.now().toString(),
+      name: guestName.trim() || '匿名访客',
+      message: guestMessage.trim(),
+      timestamp: new Date().toLocaleDateString('zh-CN'),
     };
-
-    try {
-      const response = await fetch('/api/contact/feishu', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(submitData),
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        // 添加到本地留言列表显示
-        const newMessage = {
-          id: Date.now(),
-          name: guestbookName.trim() || '匿名访客',
-          message: guestbookInput,
-          date: new Date().toISOString().split('T')[0],
-        };
-        setGuestbookMessages([newMessage, ...guestbookMessages]);
-        setGuestbookName('');
-        setGuestbookInput('');
-        alert(result.message || '留言已发送！我会尽快查看并回复您。');
-      } else {
-        alert(result.error || '留言发送失败，请稍后重试');
-      }
-    } catch (error) {
-      console.error('发送留言失败:', error);
-      alert('留言发送失败，请检查网络连接后重试');
-    }
+    setGuestMessages((prev) => [newMsg, ...prev]);
+    setGuestName('');
+    setGuestMessage('');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-green-950/20">
-      <Navigation />
-      
-      <main className="container mx-auto px-4 pt-24 pb-16">
-        {/* Header */}
+    <div className="min-h-screen bg-gray-50/50">
+      <div className="max-w-6xl mx-auto px-6 pt-24 pb-24">
+        {/* 页面标题 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="text-center mb-12"
+          transition={{ duration: 0.5 }}
+          className="mb-12"
         >
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-            联系我
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            有项目想法吗？让我们一起创造一些惊人的东西吧！
-          </p>
+          <p className="text-sm text-gray-400 uppercase tracking-widest mb-2">Contact</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">联系我</h1>
+          <div className="w-12 h-1 rounded-full" style={{ backgroundColor: CORAL }} />
         </motion.div>
 
-        <div className="flex flex-col lg:flex-row gap-8 mb-12 items-stretch">
-          {/* Contact Form */}
+        {/* 两栏布局 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
+          {/* 左栏：联系表单 */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="flex-1"
+            transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <Card className="border-green-500/20 shadow-2xl shadow-green-500/10 h-full">
-              <CardHeader className="bg-gradient-to-r from-green-900/20 to-blue-900/20 border-b !flex !flex-row !items-center !justify-center !min-h-[64px] !px-6">
-                <CardTitle className="flex items-center gap-2">
-                  <Mail className="w-6 h-6 text-green-400" />
-                  发送消息
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <form onSubmit={handleContactSubmit} className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">姓名</label>
-                    <Input
-                      placeholder="您的姓名"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">邮箱</label>
-                    <Input
-                      type="email"
-                      placeholder="your@email.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">主题</label>
-                    <Input
-                      placeholder="项目咨询、合作等"
-                      value={formData.subject}
-                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">消息</label>
-                    <Textarea
-                      placeholder="告诉我关于您的项目..."
-                      value={formData.message}
-                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      required
-                      className="min-h-[120px]"
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? '发送中...' : '发送消息'}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+            <h2 className="text-xl font-bold text-gray-900 mb-6">发送消息</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">姓名</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="您的姓名"
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all"
+                  style={{ '--tw-ring-color': CORAL } as React.CSSProperties}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">邮箱</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="your@email.com"
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all"
+                  style={{ '--tw-ring-color': CORAL } as React.CSSProperties}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">主题</label>
+                <input
+                  type="text"
+                  value={formData.subject}
+                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                  placeholder="项目咨询、合作等"
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all"
+                  style={{ '--tw-ring-color': CORAL } as React.CSSProperties}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">留言内容</label>
+                <textarea
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  placeholder="告诉我关于您的项目..."
+                  required
+                  rows={5}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all resize-none"
+                  style={{ '--tw-ring-color': CORAL } as React.CSSProperties}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-3 rounded-lg text-white font-medium transition-all hover:opacity-90 disabled:opacity-50"
+                style={{ backgroundColor: '#1A1A1A' }}
+              >
+                {isSubmitting ? '发送中...' : '发送消息'}
+              </button>
+              {submitSuccess && (
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-sm text-center"
+                  style={{ color: CORAL }}
+                >
+                  ✓ 消息发送成功！
+                </motion.p>
+              )}
+            </form>
           </motion.div>
 
-          {/* Contact Info */}
+          {/* 右栏：社交媒体 */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="flex-1 flex flex-col space-y-6"
+            transition={{ duration: 0.5, delay: 0.2 }}
           >
-            {/* Resume Download */}
-            <Card className="border-purple-500/20 shadow-xl shadow-purple-500/10">
-              <CardHeader className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-b !flex !flex-row !items-center !justify-center !min-h-[64px] !px-6">
-                <CardTitle className="flex items-center gap-2">
-                  <Download className="w-6 h-6 text-purple-400" />
-                  简历
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <p className="text-muted-foreground mb-4">
-                  {contactInfo.resumeFileName
-                    ? `当前简历：${contactInfo.resumeFileName}`
-                    : '暂无简历文件'}
-                </p>
-                <Button
-                  onClick={handleResumeDownload}
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                  disabled={!contactInfo.downloadUrl}
+            <h2 className="text-xl font-bold text-gray-900 mb-6">社交媒体</h2>
+            <div className="space-y-3">
+              {SOCIAL_LINKS.map((social, index) => (
+                <motion.a
+                  key={social.name}
+                  href="#"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.3 + index * 0.05 }}
+                  whileHover={{ y: -2, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}
+                  className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all"
                 >
-                  <Download className="w-4 h-4 mr-2" />
-                  下载简历
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2 text-center">
-                  {contactInfo.downloadCount} 次下载
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Contact Info */}
-            <Card className="flex-1">
-              <CardHeader className="!flex !flex-row !items-center !justify-between !min-h-[64px] !px-6">
-                <CardTitle>联系信息</CardTitle>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setEditorOpen(true)}
-                  disabled={loadingContactInfo}
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-green-400" />
-                  <span>{contactInfo.email}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-blue-400" />
-                  <span>{contactInfo.phone}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-purple-400" />
-                  <span>{contactInfo.location}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Social Links */}
-            <Card className="flex-1">
-              <CardHeader className="!flex !flex-row !items-center !justify-center !min-h-[64px] !px-6">
-                <CardTitle>关注我</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-2 flex-wrap">
-                  <Button variant="outline" size="sm" asChild>
-                    <a href="#" target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      微博
-                    </a>
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <a href="#" target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      领英
-                    </a>
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <a href="#" target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      GitHub
-                    </a>
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <a href="#" target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      抖音
-                    </a>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                  <span className="text-2xl">{social.icon}</span>
+                  <div>
+                    <p className="font-medium text-gray-900">{social.name}</p>
+                    <p className="text-sm text-gray-500">{social.handle}</p>
+                  </div>
+                </motion.a>
+              ))}
+            </div>
+            <div className="mt-6 p-4 bg-white rounded-xl border border-gray-100">
+              <p className="text-sm text-gray-500">
+                📧 邮箱联系：<span className="text-gray-900 font-medium">leo@example.com</span>
+              </p>
+            </div>
           </motion.div>
         </div>
 
-        {/* Guestbook */}
+        {/* 留言板 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
+          transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <Card className="border-blue-500/20 shadow-2xl shadow-blue-500/10">
-            <CardHeader className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border-b !flex !flex-row !items-center !justify-center !min-h-[64px] !px-6">
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="w-6 h-6 text-blue-400" />
-                访客留言
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <form onSubmit={handleGuestbookSubmit} className="mb-6">
-                <div className="flex flex-col md:flex-row gap-2">
-                  <Input
-                    placeholder="你的名字（选填）"
-                    value={guestbookName}
-                    onChange={(e) => setGuestbookName(e.target.value)}
-                    className="md:w-32"
-                  />
-                  <Input
-                    placeholder="留下一条消息..."
-                    value={guestbookInput}
-                    onChange={(e) => setGuestbookInput(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button
-                    type="submit"
-                    className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-                  >
-                    发布
-                  </Button>
-                </div>
-              </form>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">留言板</h2>
+          <p className="text-sm text-gray-500 mb-6">欢迎留下你的想法和建议 ✨</p>
 
-              <div className="space-y-4">
-                {guestbookMessages.map((msg) => (
-                  <div key={msg.id} className="border-l-2 border-blue-500/50 pl-4 py-2">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold">{msg.name}</span>
-                      <span className="text-xs text-muted-foreground">{msg.date}</span>
-                    </div>
-                    <p className="text-muted-foreground">{msg.message}</p>
+          {/* 留言输入 */}
+          <div className="bg-white rounded-xl border border-gray-100 p-6 mb-8 shadow-sm">
+            <div className="flex flex-col sm:flex-row gap-3 mb-3">
+              <input
+                type="text"
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                placeholder="你的名字（选填）"
+                className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent text-sm"
+                style={{ '--tw-ring-color': CORAL } as React.CSSProperties}
+              />
+              <button
+                onClick={handleGuestSubmit}
+                disabled={!guestMessage.trim()}
+                className="px-6 py-2.5 rounded-lg text-white text-sm font-medium transition-all hover:opacity-90 disabled:opacity-40"
+                style={{ backgroundColor: CORAL }}
+              >
+                留言
+              </button>
+            </div>
+            <textarea
+              value={guestMessage}
+              onChange={(e) => setGuestMessage(e.target.value)}
+              placeholder="留下一条消息..."
+              rows={2}
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent text-sm resize-none"
+              style={{ '--tw-ring-color': CORAL } as React.CSSProperties}
+            />
+          </div>
+
+          {/* 留言列表 */}
+          <div className="space-y-4">
+            <AnimatePresence>
+              {guestMessages.map((msg) => (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-gray-900">{msg.name}</span>
+                    <span className="text-xs text-gray-400">{msg.timestamp}</span>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  <p className="text-sm text-gray-600">{msg.message}</p>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
         </motion.div>
-      </main>
-
-      {/* 联系信息编辑弹窗 */}
-      <ContactInfoEditor
-        open={editorOpen}
-        onOpenChange={setEditorOpen}
-        initialData={contactInfo}
-        onSave={handleContactInfoSave}
-      />
+      </div>
     </div>
   );
 }

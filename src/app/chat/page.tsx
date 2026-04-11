@@ -2,22 +2,17 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent } from '@/components/ui/card';
-import { Navigation } from '@/components/navigation';
-import { PortfolioCard, PortfolioCardData } from '@/components/portfolio-card';
-import { Send, Sparkles, User } from 'lucide-react';
-import Image from 'next/image';
+
+const CORAL = '#E85A5A';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  portfolioCards?: PortfolioCardData[];
   imageUrl?: string;
   imagePrompt?: string;
+  portfolioCards?: Array<{ title: string; description: string; category: string }>;
 }
 
 export default function ChatPage() {
@@ -25,18 +20,16 @@ export default function ChatPage() {
     {
       id: '1',
       role: 'assistant',
-      content: "嘿，我是Leo！🎨 作为AIGC运营主管、AI导演，还有各种AI创作者的身份，我用AI工具玩出了各种花样——从央视合作的宣传片到AIGC短剧，从AI数字人到自媒体运营，这些项目我都做过。你想了解我的作品、合作方式，还是想聊聊AI技术？尽管问，我来给你点实在的！",
-      timestamp: new Date(0), // 使用固定时间避免 SSR hydration mismatch
+      content: '嘿，我是Leo！🎨 作为AIGC内容创作者和AI产品运营，我用AI工具玩出了各种花样——从央视合作的宣传片到AIGC短剧，从AI数字人到自媒体运营。你想了解我的作品、合作方式，还是想聊聊AI技术？尽管问！',
+      timestamp: new Date(0),
     },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const isFirstLoad = useRef(true);
-  const initialMessageCount = useRef(1); // 初始有1条消息
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // 客户端 mount 后修正初始消息的时间戳
+  // 客户端 mount 后修正初始消息时间戳
   useEffect(() => {
     setMessages((prev) =>
       prev.map((msg) =>
@@ -45,26 +38,21 @@ export default function ChatPage() {
     );
   }, []);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
+  // 自动滚动到底部
   useEffect(() => {
-    // 首次加载时，强制滚动到顶部
-    if (isFirstLoad.current) {
-      messagesContainerRef.current?.scrollTo({ top: 0, behavior: 'auto' });
-      isFirstLoad.current = false;
-    } else {
-      // 只有在消息数量增加时才滚动到底部
-      if (messages.length > initialMessageCount.current) {
-        scrollToBottom();
-        initialMessageCount.current = messages.length;
-      }
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // 自适应 textarea 高度
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+    }
+  }, [input]);
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!input.trim() || isLoading) return;
 
     const userMessage: Message = {
@@ -73,12 +61,11 @@ export default function ChatPage() {
       content: input.trim(),
       timestamp: new Date(),
     };
-
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
-    // Add a placeholder assistant message for streaming
+    // 添加占位助手消息
     const placeholderMessage: Message = {
       id: (Date.now() + 1).toString(),
       role: 'assistant',
@@ -88,35 +75,25 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, placeholderMessage]);
 
     try {
-      // Call the AI chat API
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMessage.content,
-          conversationHistory: messages.map(m => ({
+          conversationHistory: messages.slice(-10).map((m) => ({
             role: m.role,
             content: m.content,
           })),
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get response');
-      }
+      if (!response.ok) throw new Error('请求失败');
 
       const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('Failed to get response reader');
-      }
+      if (!reader) throw new Error('无法读取响应流');
 
       const decoder = new TextDecoder();
       let assistantMessage = '';
-      let portfolioCards: PortfolioCardData[] = [];
-      let imageUrl: string | undefined;
-      let imagePrompt: string | undefined;
       let buffer = '';
 
       while (true) {
@@ -125,68 +102,37 @@ export default function ChatPage() {
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
-        buffer = lines.pop() || ''; // Keep the last incomplete line in the buffer
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
             if (data === '[DONE]') continue;
-
             try {
               const parsed = JSON.parse(data);
               if (parsed.content) {
                 assistantMessage += parsed.content;
-
-                // Update the last message with accumulated content
                 setMessages((prev) => {
                   const newMessages = [...prev];
-                  const lastMessage = newMessages[newMessages.length - 1];
-                  if (lastMessage && lastMessage.role === 'assistant') {
-                    newMessages[newMessages.length - 1] = { ...lastMessage, content: assistantMessage };
-                  }
-                  return newMessages;
-                });
-              } else if (parsed.type === 'portfolio_cards' && parsed.portfolioCards) {
-                // 保存作品卡片数据
-                portfolioCards = parsed.portfolioCards;
-
-                // 更新消息，附加作品卡片
-                setMessages((prev) => {
-                  const newMessages = [...prev];
-                  const lastMessage = newMessages[newMessages.length - 1];
-                  if (lastMessage && lastMessage.role === 'assistant') {
-                    newMessages[newMessages.length - 1] = { ...lastMessage, portfolioCards };
-                  }
-                  return newMessages;
-                });
-              } else if (parsed.type === 'image' && parsed.imageUrl) {
-                // 保存图片数据
-                imageUrl = parsed.imageUrl;
-                imagePrompt = parsed.prompt;
-
-                // 更新消息，附加图片
-                setMessages((prev) => {
-                  const newMessages = [...prev];
-                  const lastMessage = newMessages[newMessages.length - 1];
-                  if (lastMessage && lastMessage.role === 'assistant') {
-                    newMessages[newMessages.length - 1] = { ...lastMessage, imageUrl, imagePrompt };
+                  const lastMsg = newMessages[newMessages.length - 1];
+                  if (lastMsg && lastMsg.role === 'assistant') {
+                    newMessages[newMessages.length - 1] = { ...lastMsg, content: assistantMessage };
                   }
                   return newMessages;
                 });
               }
             } catch {
-              // Skip invalid JSON
+              // 跳过无效 JSON
             }
           }
         }
       }
     } catch {
-      // Update the placeholder message with error
       setMessages((prev) => {
         const newMessages = [...prev];
-        const lastMessage = newMessages[newMessages.length - 1];
-        if (lastMessage && lastMessage.role === 'assistant') {
-          newMessages[newMessages.length - 1] = { ...lastMessage, content: '抱歉，我遇到了一个错误。请稍后再试。' };
+        const lastMsg = newMessages[newMessages.length - 1];
+        if (lastMsg && lastMsg.role === 'assistant') {
+          newMessages[newMessages.length - 1] = { ...lastMsg, content: '抱歉，我遇到了一个错误。请稍后再试。' };
         }
         return newMessages;
       });
@@ -195,199 +141,114 @@ export default function ChatPage() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-blue-950/20">
-      <Navigation />
-      
-      <main className="container mx-auto px-4 pt-24 pb-8 max-w-5xl">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-            Leo的AI数字分身
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto flex items-center justify-center gap-2">
-            <Sparkles className="w-5 h-5" />
-            与由 RAG 技术驱动的 AI 助手交流
-          </p>
-        </motion.div>
-
-        {/* Chat Container */}
-        <Card className="border-purple-500/20 shadow-2xl shadow-purple-500/10">
-          <CardContent className="p-6">
-            {/* Messages Area */}
-            <div ref={messagesContainerRef} className="h-[60vh] overflow-y-auto mb-6 space-y-4 pr-2">
-              <AnimatePresence initial={false}>
-                {messages.map((message) => (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div className={`flex gap-3 max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                      <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                        message.role === 'user'
-                          ? 'bg-gradient-to-br from-purple-500 to-pink-500'
-                          : 'bg-gradient-to-br from-blue-500 to-purple-500'
-                      }`}>
-                        {message.role === 'user' ? (
-                          <User className="w-5 h-5 text-white" />
-                        ) : (
-                          <span className="text-2xl">👦🏻</span>
-                        )}
-                      </div>
-                      <div className={`rounded-2xl px-4 py-3 ${
-                        message.role === 'user'
-                          ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
-                          : 'bg-muted'
-                      }`}>
-                        <p className="whitespace-pre-wrap">{message.content}</p>
-
-                        {/* 附加的图片 */}
-                        {message.imageUrl && (
-                          <div className="mt-3">
-                            <Image
-                              src={message.imageUrl}
-                              alt={message.imagePrompt || 'Generated image'}
-                              width={400}
-                              height={400}
-                              className="rounded-lg max-w-full h-auto"
-                              style={{ maxHeight: '400px' }}
-                            />
-                            {message.imagePrompt && (
-                              <p className="text-xs text-muted-foreground mt-2 italic">
-                                &quot;{message.imagePrompt}&quot;
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {/* 附加的作品卡片 */}
-                        {message.portfolioCards && message.portfolioCards.length > 0 && (
-                          <div className="mt-3 space-y-2">
-                            {message.portfolioCards.map((portfolio) => (
-                              <PortfolioCard
-                                key={portfolio.id}
-                                portfolio={portfolio}
-                              />
-                            ))}
-                          </div>
-                        )}
-
-                        <p className={`text-xs mt-2 ${message.role === 'user' ? 'text-purple-100' : 'text-muted-foreground'}`}>
-                          {message.timestamp.toLocaleTimeString()}
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-
-              {/* Loading Indicator */}
-              {isLoading && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex justify-start"
-                >
-                  <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-500">
-                      <span className="text-2xl">👦🏻</span>
-                    </div>
-                    <div className="rounded-2xl px-4 py-3 bg-muted">
-                      <div className="flex items-center gap-2">
-                        <motion.div
-                          className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center"
-                          animate={{
-                            rotate: 360,
-                            scale: [1, 1.2, 1],
-                          }}
-                          transition={{
-                            rotate: { duration: 1.5, repeat: Infinity, ease: "linear" },
-                            scale: { duration: 0.8, repeat: Infinity, ease: "easeInOut" },
-                          }}
-                        >
-                          <Sparkles className="w-4 h-4 text-white" />
-                        </motion.div>
-                        <motion.span
-                          className="text-sm text-muted-foreground"
-                          animate={{ opacity: [0.5, 1, 0.5] }}
-                          transition={{ duration: 1.2, repeat: Infinity }}
-                        >
-                          正在思考...
-                        </motion.span>
-                      </div>
-                      <div className="flex gap-1 mt-2 justify-center">
-                        {[0, 1, 2].map((i) => (
-                          <motion.span
-                            key={i}
-                            className="w-2 h-2 bg-purple-500 rounded-full"
-                            animate={{
-                              y: [0, -8, 0],
-                              opacity: [0.5, 1, 0.5],
-                            }}
-                            transition={{
-                              duration: 0.6,
-                              repeat: Infinity,
-                              delay: i * 0.1,
-                              ease: "easeInOut",
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-              
-              <div ref={messagesEndRef} />
+    <div className="h-dvh flex flex-col bg-white">
+      {/* 聊天头部 */}
+      <div className="flex-shrink-0 border-b border-gray-100 px-6 py-4">
+        <div className="max-w-3xl mx-auto flex items-center gap-3">
+          <span className="text-2xl">👨‍💻</span>
+          <div>
+            <h1 className="text-lg font-bold text-gray-900">Leo的AI数字分身</h1>
+            <div className="flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: CORAL }} />
+                <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: CORAL }} />
+              </span>
+              <span className="text-xs text-gray-400">在线</span>
             </div>
+          </div>
+        </div>
+      </div>
 
-            {/* Input Area */}
-            <form onSubmit={handleSubmit} className="flex gap-2">
-              <Textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="问点啥都行：我的作品、AI技术、合作方式..."
-                className="min-h-[60px] resize-none"
-                disabled={isLoading}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit(e);
-                  }
-                }}
-              />
-              <Button
-                type="submit"
-                size="icon"
-                className="h-[60px] w-[60px] bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                disabled={isLoading || !input.trim()}
+      {/* 消息区域 */}
+      <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div className="max-w-3xl mx-auto space-y-6">
+          <AnimatePresence initial={false}>
+            {messages.map((message) => (
+              <motion.div
+                key={message.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
               >
-                <Send className="w-5 h-5" />
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+                {/* 头像 */}
+                <div
+                  className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm"
+                  style={{ backgroundColor: message.role === 'user' ? CORAL : '#F3F4F6' }}
+                >
+                  {message.role === 'user' ? '😊' : '👨‍💻'}
+                </div>
 
-        {/* System Prompt Info */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="mt-8 text-center text-sm text-muted-foreground"
-        >
-          <p>Leo 的 AI 数字分身 · AIGC运营主管 & AI导演</p>
-          <p className="mt-1">INTJ建筑师型人格 · 幽默狮子座风格</p>
-        </motion.div>
-      </main>
+                {/* 消息内容 */}
+                <div className={`max-w-[75%] ${message.role === 'user' ? 'text-right' : ''}`}>
+                  <div
+                    className="inline-block px-4 py-3 rounded-2xl text-sm leading-relaxed"
+                    style={{
+                      backgroundColor: message.role === 'user' ? CORAL : '#F5F5F5',
+                      color: message.role === 'user' ? '#FFFFFF' : '#1A1A1A',
+                      borderRadius: message.role === 'user' ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
+                    }}
+                  >
+                    {message.content || (
+                      <div className="flex gap-1">
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                    )}
+                  </div>
+                  {message.content && (
+                    <p className="text-xs text-gray-400 mt-1 px-1">
+                      {message.timestamp.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+
+      {/* 输入区域 */}
+      <div className="flex-shrink-0 border-t border-gray-100 px-6 py-4 bg-white">
+        <div className="max-w-3xl mx-auto">
+          <form onSubmit={handleSubmit} className="flex items-end gap-3">
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="问点啥都行..."
+              rows={1}
+              className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent resize-none text-sm"
+              style={{ '--tw-ring-color': CORAL } as React.CSSProperties}
+            />
+            <button
+              type="submit"
+              disabled={!input.trim() || isLoading}
+              className="flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:opacity-90 disabled:opacity-40"
+              style={{ backgroundColor: CORAL }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 2L11 13" />
+                <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+              </svg>
+            </button>
+          </form>
+          <p className="text-xs text-gray-400 text-center mt-2">
+            Leo 的 AI 数字分身 · 回复仅供参考
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
