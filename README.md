@@ -2,6 +2,8 @@
 
 A high-performance personal website for an AIGC creator featuring an immersive portfolio and a personalized AI digital twin agent.
 
+> AIGC 创作者个人网站：沉浸式作品集 + 个人 AI 数字分身，Next.js 16 + React 19 + Tailwind 4 构建。
+
 ## 🚀 Tech Stack
 
 ### Frontend
@@ -214,3 +216,8 @@ For inquiries, visit the contact page or email: hello@aigccreator.com
 ---
 
 Built with ❤️ using Next.js, Tailwind CSS, and AI-powered creativity.
+---
+
+## ⭐ 支持一下
+
+觉得这个作品集模板有用？点个 Star 支持持续迭代。
